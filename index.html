@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="13Store Metaverse — Roblox-style 3D multiplayer world">
+  <title>13Store Metaverse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="src/styles/main.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+
+<body>
+
+  <!-- ===== LOBBY SCREEN ===== -->
+  <div id="lobby-screen" class="lobby-overlay">
+    <div class="lobby-card">
+      <div class="lobby-logo">
+        <div class="lobby-logo-icon">
+          <svg width="48" height="48" viewBox="0 0 28 28" fill="none">
+            <rect x="2" y="2" width="24" height="24" rx="6" stroke="url(#lg)" stroke-width="2.5" />
+            <path d="M10 9h8M14 9v10M10 14h8" stroke="url(#lg)" stroke-width="2" stroke-linecap="round" />
+            <defs>
+              <linearGradient id="lg" x1="0" y1="0" x2="28" y2="28">
+                <stop stop-color="#3b82f6" />
+                <stop offset="1" stop-color="#06b6d4" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h1>13Store <span>Metaverse</span></h1>
+      </div>
+      <p class="lobby-subtitle">Enter the world. Meet friends. Explore together.</p>
+
+      <div class="lobby-form">
+        <label for="lobby-name">Your Name</label>
+        <input type="text" id="lobby-name" placeholder="Enter your name..." maxlength="20" autocomplete="off" autofocus>
+
+        <label>Avatar Color</label>
+        <div class="color-picker">
+          <button class="color-option selected" data-color="42a5f5" style="background:#42a5f5" title="Blue"></button>
+          <button class="color-option" data-color="ef5350" style="background:#ef5350" title="Red"></button>
+          <button class="color-option" data-color="66bb6a" style="background:#66bb6a" title="Green"></button>
+          <button class="color-option" data-color="ffee58" style="background:#ffee58" title="Yellow"></button>
+          <button class="color-option" data-color="ab47bc" style="background:#ab47bc" title="Purple"></button>
+          <button class="color-option" data-color="ff7043" style="background:#ff7043" title="Orange"></button>
+          <button class="color-option" data-color="26c6da" style="background:#26c6da" title="Cyan"></button>
+          <button class="color-option" data-color="ec407a" style="background:#ec407a" title="Pink"></button>
+          <button class="color-option" data-color="ffa726" style="background:#ffa726" title="Amber"></button>
+          <button class="color-option" data-color="78909c" style="background:#78909c" title="Gray"></button>
+          <button class="color-option" data-color="5c6bc0" style="background:#5c6bc0" title="Indigo"></button>
+          <button class="color-option" data-color="8d6e63" style="background:#8d6e63" title="Brown"></button>
+        </div>
+
+        <button id="lobby-join" class="lobby-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
+          Play
+        </button>
+        <p id="lobby-error" class="lobby-error hidden"></p>
+      </div>
+
+      <div class="lobby-controls-hint">
+        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span>
+        <span><kbd>Shift</kbd> Sprint</span>
+        <span><kbd>Space</kbd> Jump</span>
+        <span><kbd>Enter</kbd> Chat</span>
+        <span><kbd>RMB</kbd> Camera</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GAME VIEWPORT ===== -->
+  <div id="game-container" class="game-container hidden">
+    <canvas id="three-canvas"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hud">
+      <!-- Top bar -->
+      <div class="hud-top">
+        <div class="hud-logo">
+          <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+            <rect x="2" y="2" width="24" height="24" rx="6" stroke="url(#lg2)" stroke-width="2.5" />
+            <path d="M10 9h8M14 9v10M10 14h8" stroke="url(#lg2)" stroke-width="2" stroke-linecap="round" />
+            <defs>
+              <linearGradient id="lg2" x1="0" y1="0" x2="28" y2="28">
+                <stop stop-color="#3b82f6" />
+                <stop offset="1" stop-color="#06b6d4" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <span>13Store Metaverse</span>
+        </div>
+        <div class="hud-players">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          <span id="player-count">0 Online</span>
+        </div>
+      </div>
+
+      <!-- Player list (right side) -->
+      <div id="player-list" class="player-list"></div>
+
+      <!-- Status bar (bottom right) -->
+      <div class="hud-status">
+        <span id="status-fps">FPS: 0</span>
+        <span id="status-pos">0, 0</span>
+      </div>
+
+      <!-- Chat panel (bottom left) -->
+      <div id="chat-panel" class="chat-panel">
+        <div id="chat-messages" class="chat-messages"></div>
+        <input type="text" id="chat-input" class="chat-input" placeholder="Press Enter to chat..." maxlength="200"
+          autocomplete="off">
+      </div>
+
+      <!-- Crosshair -->
+      <div class="crosshair"></div>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+
+</html>

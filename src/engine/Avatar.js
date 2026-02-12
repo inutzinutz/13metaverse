@@ -1,0 +1,276 @@
+import * as THREE from 'three';
+
+/**
+ * Avatar — Realistic humanoid character
+ * Smooth geometry: capsule body, sphere head, cylinder limbs
+ */
+export class Avatar {
+    constructor(options = {}) {
+        this.name = options.name || 'Player';
+        this.shirtColor = options.shirtColor || 0x42a5f5;
+        this.pantsColor = options.pantsColor || 0x1565c0;
+        this.skinColor = options.skinColor || 0xdeb887;
+        this.shoeColor = options.shoeColor || 0x3e2723;
+        this.isLocal = options.isLocal || false;
+
+        this.group = new THREE.Group();
+        this.animState = 'idle';
+        this.animTime = 0;
+
+        this._targetPos = new THREE.Vector3();
+        this._targetRot = 0;
+
+        this._build();
+        this._createNameplate();
+    }
+
+    _build() {
+        const skinMat = new THREE.MeshStandardMaterial({
+            color: this.skinColor, roughness: 0.7, metalness: 0.05,
+        });
+        const shirtMat = new THREE.MeshStandardMaterial({
+            color: this.shirtColor, roughness: 0.65, metalness: 0.05,
+        });
+        const pantsMat = new THREE.MeshStandardMaterial({
+            color: this.pantsColor, roughness: 0.7, metalness: 0.05,
+        });
+        const shoeMat = new THREE.MeshStandardMaterial({
+            color: this.shoeColor, roughness: 0.5, metalness: 0.1,
+        });
+        const hairMat = new THREE.MeshStandardMaterial({
+            color: 0x3e2723, roughness: 0.8, metalness: 0.1,
+        });
+
+        /* === HEAD === */
+        const headGeo = new THREE.SphereGeometry(0.45, 16, 12);
+        this.head = new THREE.Mesh(headGeo, skinMat);
+        this.head.position.y = 3.15;
+        this.head.castShadow = true;
+        this.group.add(this.head);
+
+        // Hair
+        const hairGeo = new THREE.SphereGeometry(0.47, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.55);
+        const hair = new THREE.Mesh(hairGeo, hairMat);
+        hair.position.y = 3.18;
+        this.group.add(hair);
+
+        // Eyes
+        const eyeWhiteGeo = new THREE.SphereGeometry(0.08, 8, 6);
+        const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xfafafa, roughness: 0.3 });
+        const eyePupilGeo = new THREE.SphereGeometry(0.04, 8, 6);
+        const eyePupilMat = new THREE.MeshStandardMaterial({ color: 0x212121, roughness: 0.2 });
+
+        for (const side of [-1, 1]) {
+            const eyeWhite = new THREE.Mesh(eyeWhiteGeo, eyeWhiteMat);
+            eyeWhite.position.set(side * 0.15, 3.2, 0.38);
+            this.group.add(eyeWhite);
+            const eyePupil = new THREE.Mesh(eyePupilGeo, eyePupilMat);
+            eyePupil.position.set(side * 0.15, 3.2, 0.42);
+            this.group.add(eyePupil);
+        }
+
+        /* === NECK === */
+        const neckGeo = new THREE.CylinderGeometry(0.12, 0.15, 0.25, 8);
+        const neck = new THREE.Mesh(neckGeo, skinMat);
+        neck.position.y = 2.82;
+        this.group.add(neck);
+
+        /* === TORSO === */
+        // Upper body (shirt)
+        const torsoGeo = new THREE.CylinderGeometry(0.45, 0.4, 1.1, 12);
+        this.torso = new THREE.Mesh(torsoGeo, shirtMat);
+        this.torso.position.y = 2.15;
+        this.torso.castShadow = true;
+        this.group.add(this.torso);
+
+        // Lower torso / belt
+        const beltGeo = new THREE.CylinderGeometry(0.38, 0.36, 0.15, 12);
+        const beltMat = new THREE.MeshStandardMaterial({ color: 0x4e342e, roughness: 0.5, metalness: 0.2 });
+        const belt = new THREE.Mesh(beltGeo, beltMat);
+        belt.position.y = 1.55;
+        this.group.add(belt);
+
+        /* === ARMS === */
+        // Upper arm
+        const upperArmGeo = new THREE.CylinderGeometry(0.12, 0.1, 0.6, 8);
+        // Lower arm (skin showing)
+        const lowerArmGeo = new THREE.CylinderGeometry(0.1, 0.09, 0.55, 8);
+        // Hand
+        const handGeo = new THREE.SphereGeometry(0.1, 8, 6);
+
+        this.leftArm = new THREE.Group();
+        const lUpperArm = new THREE.Mesh(upperArmGeo, shirtMat);
+        lUpperArm.position.y = -0.3;
+        lUpperArm.castShadow = true;
+        this.leftArm.add(lUpperArm);
+        const lLowerArm = new THREE.Mesh(lowerArmGeo, skinMat);
+        lLowerArm.position.y = -0.85;
+        this.leftArm.add(lLowerArm);
+        const lHand = new THREE.Mesh(handGeo, skinMat);
+        lHand.position.y = -1.15;
+        this.leftArm.add(lHand);
+        this.leftArm.position.set(-0.58, 2.65, 0);
+        this.group.add(this.leftArm);
+
+        this.rightArm = new THREE.Group();
+        const rUpperArm = new THREE.Mesh(upperArmGeo, shirtMat);
+        rUpperArm.position.y = -0.3;
+        rUpperArm.castShadow = true;
+        this.rightArm.add(rUpperArm);
+        const rLowerArm = new THREE.Mesh(lowerArmGeo, skinMat);
+        rLowerArm.position.y = -0.85;
+        this.rightArm.add(rLowerArm);
+        const rHand = new THREE.Mesh(handGeo, skinMat);
+        rHand.position.y = -1.15;
+        this.rightArm.add(rHand);
+        this.rightArm.position.set(0.58, 2.65, 0);
+        this.group.add(this.rightArm);
+
+        /* === LEGS === */
+        const upperLegGeo = new THREE.CylinderGeometry(0.16, 0.13, 0.6, 8);
+        const lowerLegGeo = new THREE.CylinderGeometry(0.12, 0.1, 0.55, 8);
+        const shoeGeo = new THREE.BoxGeometry(0.22, 0.15, 0.3);
+
+        this.leftLeg = new THREE.Group();
+        const lUpperLeg = new THREE.Mesh(upperLegGeo, pantsMat);
+        lUpperLeg.position.y = -0.3;
+        lUpperLeg.castShadow = true;
+        this.leftLeg.add(lUpperLeg);
+        const lLowerLeg = new THREE.Mesh(lowerLegGeo, pantsMat);
+        lLowerLeg.position.y = -0.85;
+        this.leftLeg.add(lLowerLeg);
+        const lShoe = new THREE.Mesh(shoeGeo, shoeMat);
+        lShoe.position.set(0, -1.15, 0.05);
+        this.leftLeg.add(lShoe);
+        this.leftLeg.position.set(-0.2, 1.45, 0);
+        this.group.add(this.leftLeg);
+
+        this.rightLeg = new THREE.Group();
+        const rUpperLeg = new THREE.Mesh(upperLegGeo, pantsMat);
+        rUpperLeg.position.y = -0.3;
+        rUpperLeg.castShadow = true;
+        this.rightLeg.add(rUpperLeg);
+        const rLowerLeg = new THREE.Mesh(lowerLegGeo, pantsMat);
+        rLowerLeg.position.y = -0.85;
+        this.rightLeg.add(rLowerLeg);
+        const rShoe = new THREE.Mesh(shoeGeo, shoeMat);
+        rShoe.position.set(0, -1.15, 0.05);
+        this.rightLeg.add(rShoe);
+        this.rightLeg.position.set(0.2, 1.45, 0);
+        this.group.add(this.rightLeg);
+    }
+
+    _createNameplate() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        this._nameplateCtx = ctx;
+        this._nameplateCanvas = canvas;
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
+        this._nameplateTexture = texture;
+
+        const spriteMat = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true });
+        this.nameplate = new THREE.Sprite(spriteMat);
+        this.nameplate.position.y = 4.0;
+        this.nameplate.scale.set(2.5, 0.625, 1);
+        this.group.add(this.nameplate);
+
+        this.updateNameplate(this.name);
+    }
+
+    updateNameplate(name) {
+        this.name = name;
+        const ctx = this._nameplateCtx;
+        const canvas = this._nameplateCanvas;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Background pill
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        const w = canvas.width, h = canvas.height;
+        ctx.beginPath();
+        ctx.roundRect(16, 10, w - 32, h - 20, 20);
+        ctx.fill();
+
+        // Text
+        ctx.font = 'bold 22px Inter, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 4;
+        ctx.fillText(name, w / 2, h / 2);
+        ctx.shadowBlur = 0;
+
+        this._nameplateTexture.needsUpdate = true;
+    }
+
+    setPosition(x, y, z) { this.group.position.set(x, y, z); }
+    setRotation(ry) { this.group.rotation.y = ry; }
+
+    setTargetPosition(x, y, z) { this._targetPos.set(x, y, z); }
+    setTargetRotation(ry) { this._targetRot = ry; }
+
+    update(dt) {
+        // Interpolate remote players
+        if (!this.isLocal) {
+            this.group.position.lerp(this._targetPos, 0.15);
+            let diff = this._targetRot - this.group.rotation.y;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            this.group.rotation.y += diff * 0.15;
+        }
+
+        this.animTime += dt;
+        const t = this.animTime;
+
+        if (this.animState === 'walk') {
+            const speed = 5;
+            const amp = 0.45;
+            const phase = t * speed;
+            this.leftArm.rotation.x = Math.sin(phase) * amp;
+            this.rightArm.rotation.x = -Math.sin(phase) * amp;
+            this.leftLeg.rotation.x = -Math.sin(phase) * amp * 0.85;
+            this.rightLeg.rotation.x = Math.sin(phase) * amp * 0.85;
+            // Subtle torso sway
+            this.torso.rotation.z = Math.sin(phase) * 0.02;
+            this.head.position.y = 3.15 + Math.abs(Math.sin(phase * 2)) * 0.03;
+        } else if (this.animState === 'run') {
+            const speed = 8;
+            const amp = 0.65;
+            const phase = t * speed;
+            this.leftArm.rotation.x = Math.sin(phase) * amp;
+            this.rightArm.rotation.x = -Math.sin(phase) * amp;
+            this.leftLeg.rotation.x = -Math.sin(phase) * amp;
+            this.rightLeg.rotation.x = Math.sin(phase) * amp;
+            this.torso.rotation.z = Math.sin(phase) * 0.03;
+            this.torso.position.y = 2.15 + Math.abs(Math.sin(phase * 2)) * 0.04;
+            this.head.position.y = 3.15 + Math.abs(Math.sin(phase * 2)) * 0.06;
+        } else {
+            // Idle — natural breathing
+            const breathe = Math.sin(t * 1.5);
+            this.leftArm.rotation.x *= 0.9;
+            this.rightArm.rotation.x *= 0.9;
+            this.leftLeg.rotation.x *= 0.9;
+            this.rightLeg.rotation.x *= 0.9;
+            this.torso.rotation.z *= 0.9;
+            this.torso.position.y = 2.15 + breathe * 0.015;
+            this.head.position.y = 3.15 + breathe * 0.015;
+            // Subtle arm idle sway
+            this.leftArm.rotation.z = -0.05 + breathe * 0.01;
+            this.rightArm.rotation.z = 0.05 - breathe * 0.01;
+        }
+    }
+
+    setAnimState(state) {
+        if (this.animState !== state) this.animState = state;
+    }
+
+    dispose() {
+        this.group.parent?.remove(this.group);
+        this._nameplateTexture.dispose();
+    }
+}
