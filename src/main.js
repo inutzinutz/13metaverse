@@ -3,7 +3,9 @@ import { WorldBuilder } from './engine/WorldBuilder.js';
 import { Avatar } from './engine/Avatar.js';
 import { PlayerController } from './engine/PlayerController.js';
 import { NetworkManager } from './engine/NetworkManager.js';
+import { DroneModels, DRONE_CATALOG } from './engine/DroneModels.js';
 import { ChatPanel } from './ui/ChatPanel.js';
+import { ProductPopup } from './ui/ProductPopup.js';
 import { Lobby } from './ui/Lobby.js';
 
 /**
@@ -20,6 +22,8 @@ class Game {
         this.controller = null;
         this.network = new NetworkManager();
         this.remotePlayers = new Map(); // id -> Avatar
+        this.droneModels = null;
+        this.productPopup = null;
 
         // UI
         this.lobby = new Lobby();
@@ -55,6 +59,21 @@ class Game {
 
         // Build world
         this.world = new WorldBuilder(this.scene);
+
+        // Place DJI drone displays
+        this.droneModels = new DroneModels(this.scene);
+        this.productPopup = new ProductPopup();
+        const displayPositions = this.world.getDroneDisplayPositions();
+        const droneIds = ['mini4pro', 'mavic3pro', 'avata2', 'air3', 'fpv', 'neo'];
+        droneIds.forEach((id, i) => {
+            if (displayPositions[i]) {
+                const rotY = Math.atan2(
+                    -displayPositions[i].x,
+                    30 - displayPositions[i].z
+                );
+                this.droneModels.createDisplay(id, displayPositions[i], rotY);
+            }
+        });
 
         // Create local avatar
         this.localAvatar = new Avatar({
@@ -302,6 +321,21 @@ class Game {
                 const p = this.localAvatar.group.position;
                 this.posEl.textContent = `${Math.round(p.x)}, ${Math.round(p.z)}`;
             }
+
+            // Check proximity to drone displays
+            if (this.droneModels && this.productPopup) {
+                const closest = this.droneModels.getClosestDisplay(this.localAvatar.group.position);
+                if (closest) {
+                    this.productPopup.show(closest.info);
+                } else {
+                    this.productPopup.hide();
+                }
+            }
+        }
+
+        // Update drone display animations
+        if (this.droneModels) {
+            this.droneModels.update(dt);
         }
 
         // Update remote avatars

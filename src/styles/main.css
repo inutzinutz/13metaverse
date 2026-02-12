@@ -1,5 +1,5 @@
 /* ============================================
-   13Store Metaverse — Roblox-style Game UI
+   DJI 13Store — Virtual Showroom UI
    ============================================ */
 
 /* === RESET & BASE === */
@@ -13,13 +13,13 @@
 
 :root {
   --font: 'Inter', system-ui, -apple-system, sans-serif;
-  --primary: #3b82f6;
-  --primary-glow: rgba(59, 130, 246, 0.3);
-  --accent: #06b6d4;
+  --primary: #e2001a;
+  --primary-glow: rgba(226, 0, 26, 0.3);
+  --accent: #ff4444;
   --success: #22c55e;
   --danger: #ef4444;
   --hud-bg: rgba(0, 0, 0, 0.5);
-  --hud-bg-solid: rgba(20, 20, 30, 0.85);
+  --hud-bg-solid: rgba(20, 20, 20, 0.9);
   --glass: rgba(255, 255, 255, 0.08);
   --text: #ffffff;
   --text-dim: rgba(255, 255, 255, 0.6);
@@ -47,7 +47,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 50%, #0a0a0a 100%);
   animation: lobbyFadeIn 0.5s ease;
 }
 
@@ -74,7 +74,7 @@ body {
   width: 420px;
   max-width: 90vw;
   text-align: center;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 80px var(--primary-glow);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(226, 0, 26, 0.15);
   animation: cardSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -109,15 +109,14 @@ body {
 .lobby-logo h1 {
   font-size: 28px;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #ffffff;
   letter-spacing: -0.5px;
 }
 
 .lobby-logo h1 span {
   font-weight: 500;
-  font-size: 20px;
+  font-size: 18px;
+  color: #e2001a;
 }
 
 .lobby-subtitle {
@@ -530,4 +529,26 @@ kbd {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* === LOBBY FOOTER === */
+.lobby-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.lobby-footer a {
+  color: #e2001a;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.lobby-footer a:hover {
+  text-decoration: underline;
 }

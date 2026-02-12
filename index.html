@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="13Store Metaverse — Roblox-style 3D multiplayer world">
-  <title>13Store Metaverse</title>
+  <meta name="description" content="DJI 13Store Virtual Showroom — โชว์รูมโดรน DJI แบบ 3D Multiplayer">
+  <title>DJI 13Store — Virtual Showroom</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
@@ -28,26 +28,24 @@
     <div class="lobby-card">
       <div class="lobby-logo">
         <div class="lobby-logo-icon">
-          <svg width="48" height="48" viewBox="0 0 28 28" fill="none">
-            <rect x="2" y="2" width="24" height="24" rx="6" stroke="url(#lg)" stroke-width="2.5" />
-            <path d="M10 9h8M14 9v10M10 14h8" stroke="url(#lg)" stroke-width="2" stroke-linecap="round" />
-            <defs>
-              <linearGradient id="lg" x1="0" y1="0" x2="28" y2="28">
-                <stop stop-color="#3b82f6" />
-                <stop offset="1" stop-color="#06b6d4" />
-              </linearGradient>
-            </defs>
+          <!-- DJI-style logo -->
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+            <rect x="2" y="2" width="48" height="48" rx="12" stroke="#e2001a" stroke-width="3" />
+            <text x="26" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="#ffffff"
+              font-family="Inter, sans-serif">DJI</text>
+            <text x="26" y="44" text-anchor="middle" font-size="8" font-weight="bold" fill="#e2001a"
+              font-family="Inter, sans-serif">13STORE</text>
           </svg>
         </div>
-        <h1>13Store <span>Metaverse</span></h1>
+        <h1>DJI 13Store <span>Virtual Showroom</span></h1>
       </div>
-      <p class="lobby-subtitle">Enter the world. Meet friends. Explore together.</p>
+      <p class="lobby-subtitle">เข้าชมโชว์รูมโดรน DJI แบบ 3D · พบปะเพื่อนร่วมงาน · สำรวจสินค้า</p>
 
       <div class="lobby-form">
-        <label for="lobby-name">Your Name</label>
-        <input type="text" id="lobby-name" placeholder="Enter your name..." maxlength="20" autocomplete="off" autofocus>
+        <label for="lobby-name">ชื่อของคุณ</label>
+        <input type="text" id="lobby-name" placeholder="ใส่ชื่อ..." maxlength="20" autocomplete="off" autofocus>
 
-        <label>Avatar Color</label>
+        <label>สี Avatar</label>
         <div class="color-picker">
           <button class="color-option selected" data-color="42a5f5" style="background:#42a5f5" title="Blue"></button>
           <button class="color-option" data-color="ef5350" style="background:#ef5350" title="Red"></button>
@@ -59,8 +57,9 @@
           <button class="color-option" data-color="ec407a" style="background:#ec407a" title="Pink"></button>
           <button class="color-option" data-color="ffa726" style="background:#ffa726" title="Amber"></button>
           <button class="color-option" data-color="78909c" style="background:#78909c" title="Gray"></button>
-          <button class="color-option" data-color="5c6bc0" style="background:#5c6bc0" title="Indigo"></button>
-          <button class="color-option" data-color="8d6e63" style="background:#8d6e63" title="Brown"></button>
+          <button class="color-option" data-color="e2001a" style="background:#e2001a" title="DJI Red"></button>
+          <button class="color-option" data-color="1a1a1a" style="background:#1a1a1a; border:2px solid #555"
+            title="DJI Black"></button>
         </div>
 
         <button id="lobby-join" class="lobby-btn">
@@ -68,17 +67,22 @@
             stroke-linecap="round" stroke-linejoin="round">
             <polygon points="5 3 19 12 5 21 5 3" />
           </svg>
-          Play
+          เข้าชมโชว์รูม
         </button>
         <p id="lobby-error" class="lobby-error hidden"></p>
       </div>
 
       <div class="lobby-controls-hint">
-        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span>
-        <span><kbd>Shift</kbd> Sprint</span>
-        <span><kbd>Space</kbd> Jump</span>
-        <span><kbd>Enter</kbd> Chat</span>
-        <span><kbd>RMB</kbd> Camera</span>
+        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> เดิน</span>
+        <span><kbd>Shift</kbd> วิ่ง</span>
+        <span><kbd>Space</kbd> กระโดด</span>
+        <span><kbd>Enter</kbd> แชท</span>
+        <span><kbd>RMB</kbd> กล้อง</span>
+      </div>
+
+      <div class="lobby-footer">
+        <a href="https://www.dji13store.com" target="_blank">🌐 www.dji13store.com</a>
+        <span>ลาดปลาเค้า · ราชพฤกษ์</span>
       </div>
     </div>
   </div>
@@ -92,17 +96,12 @@
       <!-- Top bar -->
       <div class="hud-top">
         <div class="hud-logo">
-          <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
-            <rect x="2" y="2" width="24" height="24" rx="6" stroke="url(#lg2)" stroke-width="2.5" />
-            <path d="M10 9h8M14 9v10M10 14h8" stroke="url(#lg2)" stroke-width="2" stroke-linecap="round" />
-            <defs>
-              <linearGradient id="lg2" x1="0" y1="0" x2="28" y2="28">
-                <stop stop-color="#3b82f6" />
-                <stop offset="1" stop-color="#06b6d4" />
-              </linearGradient>
-            </defs>
+          <svg width="24" height="24" viewBox="0 0 52 52" fill="none">
+            <rect x="2" y="2" width="48" height="48" rx="12" stroke="#e2001a" stroke-width="3" />
+            <text x="26" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="#fff"
+              font-family="Inter">DJI</text>
           </svg>
-          <span>13Store Metaverse</span>
+          <span>DJI 13Store</span>
         </div>
         <div class="hud-players">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -128,7 +127,7 @@
       <!-- Chat panel (bottom left) -->
       <div id="chat-panel" class="chat-panel">
         <div id="chat-messages" class="chat-messages"></div>
-        <input type="text" id="chat-input" class="chat-input" placeholder="Press Enter to chat..." maxlength="200"
+        <input type="text" id="chat-input" class="chat-input" placeholder="กด Enter เพื่อแชท..." maxlength="200"
           autocomplete="off">
       </div>
 
