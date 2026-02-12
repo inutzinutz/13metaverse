@@ -15,6 +15,7 @@ export class NetworkManager {
         this.onPlayerUpdate = null;
         this.onChatMessage = null;
         this.onPlayerList = null;
+        this.onWhiteboard = null;
 
         this._sendInterval = null;
     }
@@ -92,6 +93,9 @@ export class NetworkManager {
                 break;
             case 'player_list':
                 if (this.onPlayerList) this.onPlayerList(data.players);
+                break;
+            case 'whiteboard':
+                if (this.onWhiteboard) this.onWhiteboard(data.data);
                 break;
         }
     }

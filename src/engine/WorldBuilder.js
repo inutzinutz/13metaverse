@@ -18,6 +18,7 @@ export class WorldBuilder {
         this._createDJIStores();
         this._createDroneDisplayZone();
         this._createFPVArena();
+        this._createMeetingHall();
         this._createEnvironment();
         this._createLamps();
     }
@@ -688,5 +689,119 @@ export class WorldBuilder {
             ));
         }
         return positions;
+    }
+
+    /* =================== MEETING HALL =================== */
+    _createMeetingHall() {
+        const x = -55, z = 25;
+        const group = new THREE.Group();
+        const blackMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.2, metalness: 0.6 });
+        const whiteMat = new THREE.MeshStandardMaterial({ color: 0xf0f0f0, roughness: 0.5, metalness: 0.1 });
+        const glassMat = new THREE.MeshStandardMaterial({
+            color: 0x88ccff, roughness: 0.05, metalness: 0.9,
+            transparent: true, opacity: 0.3,
+        });
+        const redMat = new THREE.MeshStandardMaterial({
+            color: 0xe2001a, emissive: 0xe2001a, emissiveIntensity: 0.3,
+        });
+
+        // Main building
+        const body = new THREE.Mesh(new THREE.BoxGeometry(14, 8, 10), whiteMat);
+        body.position.y = 4; body.castShadow = true; body.receiveShadow = true;
+        group.add(body);
+
+        // Glass walls (front + sides)
+        const frontGlass = new THREE.Mesh(new THREE.PlaneGeometry(13, 6), glassMat);
+        frontGlass.position.set(0, 4, 5.05);
+        group.add(frontGlass);
+        for (const side of [-1, 1]) {
+            const sideGlass = new THREE.Mesh(new THREE.PlaneGeometry(9, 6), glassMat);
+            sideGlass.position.set(side * 7.05, 4, 0);
+            sideGlass.rotation.y = side * Math.PI / 2;
+            group.add(sideGlass);
+        }
+
+        // Red accent
+        const accent = new THREE.Mesh(new THREE.BoxGeometry(14.2, 0.12, 10.2), redMat);
+        accent.position.y = 7.5; group.add(accent);
+
+        // Roof
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(15, 0.3, 11), blackMat);
+        roof.position.y = 8.15; roof.castShadow = true;
+        group.add(roof);
+
+        // Sign
+        const canvas = document.createElement('canvas');
+        canvas.width = 512; canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0, 0, 512, 128);
+        ctx.font = 'bold 36px Inter, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffffff'; ctx.fillText('📹 MEETING ROOM', 256, 50);
+        ctx.font = '20px Inter, system-ui, sans-serif';
+        ctx.fillStyle = '#e2001a'; ctx.fillText('& WHITEBOARD', 256, 85);
+        const signTex = new THREE.CanvasTexture(canvas);
+        const sign = new THREE.Mesh(new THREE.PlaneGeometry(6, 1.5),
+            new THREE.MeshStandardMaterial({ map: signTex, roughness: 0.3 }));
+        sign.position.set(0, 8.8, 5.1);
+        group.add(sign);
+
+        // Interior floor
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(13, 9),
+            new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.3, metalness: 0.4 }));
+        floor.rotation.x = -Math.PI / 2; floor.position.y = 0.06;
+        floor.receiveShadow = true;
+        group.add(floor);
+
+        // Interior light
+        const light = new THREE.PointLight(0xffffff, 1, 20);
+        light.position.set(0, 7, 0);
+        group.add(light);
+
+        // Conference table
+        const tableMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.3, metalness: 0.5 });
+        const table = new THREE.Mesh(new THREE.BoxGeometry(6, 0.15, 3), tableMat);
+        table.position.y = 1; table.castShadow = true;
+        group.add(table);
+        for (const [lx, lz] of [[-2.5, -1], [-2.5, 1], [2.5, -1], [2.5, 1]]) {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1, 6), tableMat);
+            leg.position.set(lx, 0.5, lz);
+            group.add(leg);
+        }
+
+        // Chairs
+        const chairMat = new THREE.MeshStandardMaterial({ color: 0xe2001a, roughness: 0.5 });
+        for (let i = 0; i < 6; i++) {
+            const seat = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.08, 0.6), chairMat);
+            const cx = -2 + (i % 3) * 2;
+            const cz = i < 3 ? -2.2 : 2.2;
+            seat.position.set(cx, 0.6, cz);
+            group.add(seat);
+            const back = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.7, 0.06), chairMat);
+            back.position.set(cx, 1, i < 3 ? -2.5 : 2.5);
+            group.add(back);
+        }
+
+        group.position.set(x, 0, z);
+        this.scene.add(group);
+
+        // Store meeting zone info
+        this.meetingZone = { x, z, radius: 10 };
+
+        // Collider
+        this.colliders.push(new THREE.Box3(
+            new THREE.Vector3(x - 7.5, 0, z - 5.5),
+            new THREE.Vector3(x + 7.5, 9, z + 5.5)
+        ));
+    }
+
+    /**
+     * Check if position is in the meeting zone
+     */
+    isInMeetingZone(pos) {
+        if (!this.meetingZone) return false;
+        const dx = pos.x - this.meetingZone.x;
+        const dz = pos.z - this.meetingZone.z;
+        return Math.sqrt(dx * dx + dz * dz) < this.meetingZone.radius;
     }
 }

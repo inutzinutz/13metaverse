@@ -9,6 +9,8 @@ import asyncio
 import json
 import random
 import os
+import hashlib
+import sqlite3
 from pathlib import Path
 from http import HTTPStatus
 
@@ -18,6 +20,55 @@ from websockets.http11 import Response
 # ─── Configuration ───────────────────────────────────────────
 PORT = int(os.environ.get('PORT', 8080))
 ROOT_DIR = Path(__file__).parent.resolve()
+DB_PATH = ROOT_DIR / 'users.db'
+
+# ─── Database ────────────────────────────────────────────────
+def init_db():
+    conn = sqlite3.connect(str(DB_PATH))
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            name TEXT NOT NULL,
+            avatar_color INTEGER DEFAULT 4367861,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def register_user(email, password, name=None):
+    conn = sqlite3.connect(str(DB_PATH))
+    try:
+        display_name = name or email.split('@')[0]
+        conn.execute(
+            'INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)',
+            (email.lower(), hash_password(password), display_name)
+        )
+        conn.commit()
+        user_id = conn.execute('SELECT last_insert_rowid()').fetchone()[0]
+        return {'id': user_id, 'email': email, 'name': display_name}
+    except sqlite3.IntegrityError:
+        return None  # Email already exists
+    finally:
+        conn.close()
+
+def login_user(email, password):
+    conn = sqlite3.connect(str(DB_PATH))
+    row = conn.execute(
+        'SELECT id, email, name, avatar_color FROM users WHERE email=? AND password_hash=?',
+        (email.lower(), hash_password(password))
+    ).fetchone()
+    conn.close()
+    if row:
+        return {'id': row[0], 'email': row[1], 'name': row[2], 'color': row[3]}
+    return None
+
+init_db()
 
 MIME_MAP = {
     '.html': 'text/html; charset=utf-8',
@@ -122,6 +173,13 @@ class GameServer:
                         })
                         print(f"  [💬] {self.players[player_id]['name']}: {msg_text}")
 
+                elif msg_type == 'whiteboard' and player_id:
+                    # Relay whiteboard data to all OTHER players
+                    await self.broadcast({
+                        'type': 'whiteboard',
+                        'data': data.get('data', {})
+                    }, exclude=player_id)
+
         except websockets.exceptions.ConnectionClosed:
             pass
         except Exception as e:
@@ -167,12 +225,16 @@ def serve_file(connection, request):
     Return a Response to serve HTTP, or None to proceed with WebSocket.
     """
     # Only intercept non-WebSocket requests (normal HTTP GET)
-    # WebSocket requests have 'Upgrade: websocket' header
     if request.headers.get('Upgrade', '').lower() == 'websocket':
         return None  # Let it be handled as WebSocket
 
-    # Serve static files
     url_path = request.path.split('?')[0]
+
+    # ─── API Routes ────────────────────────────────────────
+    if url_path.startswith('/api/'):
+        return handle_api(request, url_path)
+
+    # ─── Static Files ──────────────────────────────────────
     if url_path == '/':
         url_path = '/index.html'
 
@@ -201,6 +263,57 @@ def serve_file(connection, request):
     ])
 
     return Response(HTTPStatus.OK, "", headers, body)
+
+
+def handle_api(request, url_path):
+    """Handle JSON API endpoints."""
+    json_headers = websockets.Headers([
+        ('Content-Type', 'application/json'),
+        ('Access-Control-Allow-Origin', '*'),
+        ('Access-Control-Allow-Headers', 'Content-Type'),
+    ])
+
+    # Parse body for POST requests
+    try:
+        body_str = request.body.decode() if hasattr(request, 'body') and request.body else '{}'
+        data = json.loads(body_str) if body_str else {}
+    except Exception:
+        data = {}
+
+    if url_path == '/api/register':
+        email = data.get('email', '').strip()
+        password = data.get('password', '')
+        name = data.get('name', '')
+        if not email or not password:
+            resp_body = json.dumps({'error': 'กรุณากรอกอีเมลและรหัสผ่าน'}).encode()
+            return Response(HTTPStatus.BAD_REQUEST, "", json_headers, resp_body)
+        result = register_user(email, password, name)
+        if result:
+            resp_body = json.dumps(result).encode()
+            print(f"  [📝] Registered: {email}")
+            return Response(HTTPStatus.OK, "", json_headers, resp_body)
+        else:
+            resp_body = json.dumps({'error': 'อีเมลนี้ถูกใช้แล้ว'}).encode()
+            return Response(HTTPStatus.CONFLICT, "", json_headers, resp_body)
+
+    elif url_path == '/api/login':
+        email = data.get('email', '').strip()
+        password = data.get('password', '')
+        if not email or not password:
+            resp_body = json.dumps({'error': 'กรุณากรอกอีเมลและรหัสผ่าน'}).encode()
+            return Response(HTTPStatus.BAD_REQUEST, "", json_headers, resp_body)
+        result = login_user(email, password)
+        if result:
+            resp_body = json.dumps(result).encode()
+            print(f"  [🔑] Login: {email}")
+            return Response(HTTPStatus.OK, "", json_headers, resp_body)
+        else:
+            resp_body = json.dumps({'error': 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'}).encode()
+            return Response(HTTPStatus.UNAUTHORIZED, "", json_headers, resp_body)
+
+    else:
+        resp_body = json.dumps({'error': 'Not found'}).encode()
+        return Response(HTTPStatus.NOT_FOUND, "", json_headers, resp_body)
 
 
 # ─── Main ────────────────────────────────────────────────────

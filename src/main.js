@@ -4,8 +4,11 @@ import { Avatar } from './engine/Avatar.js';
 import { PlayerController } from './engine/PlayerController.js';
 import { NetworkManager } from './engine/NetworkManager.js';
 import { DroneModels, DRONE_CATALOG } from './engine/DroneModels.js';
+import { MeetingRoom } from './engine/MeetingRoom.js';
 import { ChatPanel } from './ui/ChatPanel.js';
 import { ProductPopup } from './ui/ProductPopup.js';
+import { LoginScreen } from './ui/LoginScreen.js';
+import { Whiteboard } from './ui/Whiteboard.js';
 import { Lobby } from './ui/Lobby.js';
 
 /**
@@ -24,6 +27,10 @@ class Game {
         this.remotePlayers = new Map(); // id -> Avatar
         this.droneModels = null;
         this.productPopup = null;
+        this.meetingRoom = null;
+        this.whiteboard = null;
+        this.loginScreen = null;
+        this._inMeetingZone = false;
 
         // UI
         this.lobby = new Lobby();
@@ -42,6 +49,26 @@ class Game {
         this.fps = 0;
 
         this._bindLobby();
+        this._initLogin();
+    }
+
+    _initLogin() {
+        this.loginScreen = new LoginScreen();
+        this.loginScreen.onLogin = (userData) => {
+            // Pre-fill lobby name if we have display name
+            if (userData && userData.name) {
+                const nameInput = document.getElementById('lobby-name');
+                if (nameInput) nameInput.value = userData.name;
+            }
+        };
+
+        // Skip button goes directly to lobby
+        const skipBtn = document.querySelector('#login-skip');
+        if (skipBtn) {
+            skipBtn.addEventListener('click', () => {
+                this.loginScreen.hide();
+            });
+        }
     }
 
     _bindLobby() {
@@ -72,6 +99,25 @@ class Game {
                     30 - displayPositions[i].z
                 );
                 this.droneModels.createDisplay(id, displayPositions[i], rotY);
+            }
+        });
+
+        // Meeting room & Whiteboard
+        this.meetingRoom = new MeetingRoom();
+        this.whiteboard = new Whiteboard(this.network);
+
+        // Keyboard shortcuts for enterprise features
+        window.addEventListener('keydown', (e) => {
+            if (this.chat?.isChatActive()) return;
+            if (e.key === 'm' || e.key === 'M') {
+                if (this._inMeetingZone) {
+                    this.meetingRoom.open('DJI 13Store', this.localAvatar?.name || 'Guest');
+                }
+            }
+            if (e.key === 'b' || e.key === 'B') {
+                if (this._inMeetingZone) {
+                    this.whiteboard.toggle();
+                }
             }
         });
 
@@ -222,6 +268,12 @@ class Game {
             this._updatePlayerList();
         };
 
+        this.network.onWhiteboard = (data) => {
+            if (this.whiteboard) {
+                this.whiteboard.receiveDrawData(data);
+            }
+        };
+
         this.network.onDisconnect = () => {
             this.chat.addSystemMessage('Disconnected from server.');
             this.remotePlayers.forEach(avatar => avatar.dispose());
@@ -329,6 +381,15 @@ class Game {
                     this.productPopup.show(closest.info);
                 } else {
                     this.productPopup.hide();
+                }
+            }
+
+            // Check if in meeting zone
+            if (this.world) {
+                const wasIn = this._inMeetingZone;
+                this._inMeetingZone = this.world.isInMeetingZone(this.localAvatar.group.position);
+                if (this._inMeetingZone && !wasIn && this.chat) {
+                    this.chat.addSystemMessage('📹 ห้องประชุม — กด M เพื่อเปิด Meeting · กด B เพื่อเปิด Whiteboard');
                 }
             }
         }
