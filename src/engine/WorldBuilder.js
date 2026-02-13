@@ -187,11 +187,13 @@ export class WorldBuilder {
         ctx.fillText('DJI', 128, 100);
         ctx.font = 'bold 28px Inter, system-ui, sans-serif';
         ctx.fillStyle = '#e2001a';
-        ctx.fillText('13STORE', 128, 145);
-        ctx.font = '18px Inter, system-ui, sans-serif';
+        ctx.fillText('RAMA 9', 128, 145);
+        ctx.font = 'bold 24px Inter, system-ui, sans-serif';
+        ctx.fillStyle = '#e2001a';
+        ctx.fillText('SUPER STORE', 128, 185);
+        ctx.font = '16px Inter, system-ui, sans-serif';
         ctx.fillStyle = '#888888';
-        ctx.fillText('VIRTUAL', 128, 185);
-        ctx.fillText('SHOWROOM', 128, 210);
+        ctx.fillText('VIRTUAL DIGITAL TWIN', 128, 220);
 
         const texture = new THREE.CanvasTexture(canvas);
         const plateMat = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.3, metalness: 0.5 });
@@ -263,10 +265,10 @@ export class WorldBuilder {
         ctx.font = 'bold 48px Inter, system-ui, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillStyle = '#ffffff';
-        ctx.fillText('DJI 13STORE', 256, 55);
+        ctx.fillText('DJI RAMA 9', 256, 55);
         ctx.font = '24px Inter, system-ui, sans-serif';
         ctx.fillStyle = '#e2001a';
-        ctx.fillText('VIRTUAL SHOWROOM', 256, 95);
+        ctx.fillText('SUPER STORE DIGITAL TWIN', 256, 95);
 
         const tex = new THREE.CanvasTexture(canvas);
         const signMat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.3 });
@@ -293,7 +295,7 @@ export class WorldBuilder {
     /* =================== DJI STORES =================== */
     _createDJIStores() {
         this._createStore('ลาดปลาเค้า', -30, 0, -25, 0);
-        this._createStore('ราชพฤกษ์', 30, 0, -25, Math.PI);
+        this._createStore('Rama 9 Super Store', 30, 0, -25, Math.PI);
     }
 
     _createStore(branchName, x, y, z, ry) {
