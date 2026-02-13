@@ -13,6 +13,7 @@ import { LoginScreen } from './ui/LoginScreen.js';
 import { Whiteboard } from './ui/Whiteboard.js';
 import { EmoteSystem } from './ui/EmoteSystem.js';
 import { MiniMap } from './ui/MiniMap.js';
+import { MobileControls } from './ui/MobileControls.js';
 import { Lobby } from './ui/Lobby.js';
 
 /**
@@ -38,6 +39,7 @@ class Game {
         this.miniMap = null;
         this.dayNight = null;
         this.weatherSystem = null;
+        this.mobileControls = null;
         this._inMeetingZone = false;
 
         // UI
@@ -119,6 +121,7 @@ class Game {
         this.miniMap = new MiniMap();
         this.dayNight = new DayNightCycle(this.scene);
         this.weatherSystem = new WeatherSystem(this.scene);
+        this.mobileControls = new MobileControls();
 
         // Keyboard shortcuts for enterprise features
         window.addEventListener('keydown', (e) => {
@@ -205,17 +208,17 @@ class Game {
         this.camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.5, 500);
         this.camera.position.set(0, 10, 15);
 
-        // Lighting — realistic outdoor
-        const hemiLight = new THREE.HemisphereLight(0x87ceeb, 0x4a7c3f, 0.5);
+        // Lighting — base (DayNightCycle adds dynamic lights)
+        const hemiLight = new THREE.HemisphereLight(0x87ceeb, 0x4a7c3f, 0.2);
         this.scene.add(hemiLight);
 
-        const ambient = new THREE.AmbientLight(0xffffff, 0.3);
+        const ambient = new THREE.AmbientLight(0xffffff, 0.15);
         this.scene.add(ambient);
 
-        const sun = new THREE.DirectionalLight(0xfff5e0, 1.4);
+        const sun = new THREE.DirectionalLight(0xfff5e0, 0.5);
         sun.position.set(50, 80, 30);
         sun.castShadow = true;
-        sun.shadow.mapSize.set(2048, 2048);
+        sun.shadow.mapSize.set(1024, 1024);
         sun.shadow.camera.left = -60;
         sun.shadow.camera.right = 60;
         sun.shadow.camera.top = 60;
@@ -223,7 +226,7 @@ class Game {
         sun.shadow.camera.far = 200;
         this.scene.add(sun);
 
-        const fillLight = new THREE.DirectionalLight(0xb3e5fc, 0.3);
+        const fillLight = new THREE.DirectionalLight(0xb3e5fc, 0.15);
         fillLight.position.set(-30, 40, -30);
         this.scene.add(fillLight);
     }
