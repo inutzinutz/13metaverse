@@ -592,3 +592,148 @@ kbd {
     box-shadow: 0 0 0 0 rgba(226, 0, 26, 0);
   }
 }
+
+/* Avatar Customizer UI */
+.customizer-panel {
+  position: fixed;
+  right: -400px;
+  /* Hidden by default */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 320px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 2000;
+  transition: right 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  overflow: hidden;
+  border-radius: 24px 0 0 24px;
+}
+
+#avatar-customizer[style*="display: flex"] {
+  right: 0 !important;
+}
+
+.customizer-header {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.customizer-header h3 {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+.customizer-sections {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.customizer-section {
+  margin-bottom: 25px;
+}
+
+.customizer-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.option-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.option-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.option-btn.active {
+  background: rgba(226, 0, 26, 0.2);
+  border-color: #e2001a;
+  color: #fff;
+}
+
+input[type="color"] {
+  width: 100%;
+  height: 35px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+}
+
+.color-row {
+  display: flex;
+  gap: 15px;
+}
+
+.color-row div {
+  flex: 1;
+}
+
+.color-row label {
+  display: block;
+  font-size: 11px;
+  margin-bottom: 5px;
+  color: #666;
+}
+
+.skin-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.skin-swatch {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.skin-swatch:hover {
+  transform: scale(1.1);
+}
+
+.customizer-footer {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.primary-btn {
+  width: 100%;
+  background: #e2001a;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.2s;
+}
+
+.primary-btn:hover {
+  background: #ff1a33;
+}

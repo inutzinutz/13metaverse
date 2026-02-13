@@ -19,6 +19,7 @@ export class NetworkManager {
         this.onWorldEdit = null;
         this.onVoiceTalking = null;
         this.onVoiceReady = null;
+        this.onAppearanceUpdate = null;
 
         this._sendInterval = null;
     }
@@ -35,7 +36,10 @@ export class NetworkManager {
                     this._send({
                         type: 'join',
                         name: playerInfo.name,
-                        color: playerInfo.color
+                        color: playerInfo.color,
+                        hairStyle: playerInfo.hairStyle || 'short',
+                        hairColor: playerInfo.hairColor || 0x3e2723,
+                        shirtType: playerInfo.shirtType || 'tshirt'
                     });
                 };
 
@@ -108,6 +112,9 @@ export class NetworkManager {
                 break;
             case 'voice_ready':
                 if (this.onVoiceReady) this.onVoiceReady(data);
+                break;
+            case 'appearance_update':
+                if (this.onAppearanceUpdate) this.onAppearanceUpdate(data.id, data.data);
                 break;
         }
     }

@@ -11,6 +11,9 @@ export class Avatar {
         this.pantsColor = options.pantsColor || 0x1565c0;
         this.skinColor = options.skinColor || 0xdeb887;
         this.shoeColor = options.shoeColor || 0x3e2723;
+        this.hairColor = options.hairColor || 0x3e2723;
+        this.hairStyle = options.hairStyle || 'short';
+        this.shirtType = options.shirtType || 'tshirt';
         this.isLocal = options.isLocal || false;
 
         this.group = new THREE.Group();
@@ -112,7 +115,7 @@ export class Avatar {
             color: this.shoeColor, roughness: 0.5, metalness: 0.1,
         });
         const hairMat = new THREE.MeshStandardMaterial({
-            color: 0x3e2723, roughness: 0.8, metalness: 0.1,
+            color: this.hairColor, roughness: 0.8, metalness: 0.1,
         });
 
         /* === HEAD === */
@@ -122,11 +125,8 @@ export class Avatar {
         this.head.castShadow = true;
         this.group.add(this.head);
 
-        // Hair
-        const hairGeo = new THREE.SphereGeometry(0.47, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.55);
-        const hair = new THREE.Mesh(hairGeo, hairMat);
-        hair.position.y = 3.18;
-        this.group.add(hair);
+        // Hair Styles
+        this._buildHair(hairMat);
 
         // Eyes
         const eyeWhiteGeo = new THREE.SphereGeometry(0.08, 8, 6);
@@ -150,12 +150,7 @@ export class Avatar {
         this.group.add(neck);
 
         /* === TORSO === */
-        // Upper body (shirt)
-        const torsoGeo = new THREE.CylinderGeometry(0.45, 0.4, 1.1, 12);
-        this.torso = new THREE.Mesh(torsoGeo, shirtMat);
-        this.torso.position.y = 2.15;
-        this.torso.castShadow = true;
-        this.group.add(this.torso);
+        this._buildTorso(shirtMat);
 
         // Lower torso / belt
         const beltGeo = new THREE.CylinderGeometry(0.38, 0.36, 0.15, 12);
@@ -232,6 +227,89 @@ export class Avatar {
         this.rightLeg.add(rShoe);
         this.rightLeg.position.set(0.2, 1.45, 0);
         this.group.add(this.rightLeg);
+    }
+
+    _buildHair(mat) {
+        if (this.hairStyle === 'bald') return;
+
+        if (this.hairStyle === 'short') {
+            const hairGeo = new THREE.SphereGeometry(0.47, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.55);
+            const hair = new THREE.Mesh(hairGeo, mat);
+            hair.position.y = 3.18;
+            this.group.add(hair);
+        } else if (this.hairStyle === 'long') {
+            const capGeo = new THREE.SphereGeometry(0.47, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.55);
+            const cap = new THREE.Mesh(capGeo, mat);
+            cap.position.y = 3.18;
+            this.group.add(cap);
+
+            const backGeo = new THREE.CylinderGeometry(0.45, 0.4, 0.8, 12, 1, true, 0, Math.PI);
+            const back = new THREE.Mesh(backGeo, mat);
+            back.position.set(0, 2.7, -0.05);
+            back.rotation.y = Math.PI / 2;
+            this.group.add(back);
+        } else if (this.hairStyle === 'mohawk') {
+            const geo = new THREE.BoxGeometry(0.12, 0.3, 0.8);
+            const hair = new THREE.Mesh(geo, mat);
+            hair.position.set(0, 3.65, 0);
+            this.group.add(hair);
+
+            const baseGeo = new THREE.SphereGeometry(0.47, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.3);
+            const base = new THREE.Mesh(baseGeo, mat);
+            base.position.y = 3.18;
+            this.group.add(base);
+        }
+    }
+
+    _buildTorso(mat) {
+        if (this.shirtType === 'tshirt') {
+            const torsoGeo = new THREE.CylinderGeometry(0.45, 0.4, 1.1, 12);
+            this.torso = new THREE.Mesh(torsoGeo, mat);
+        } else if (this.shirtType === 'jacket') {
+            this.torso = new THREE.Group();
+            const bodyGeo = new THREE.CylinderGeometry(0.48, 0.42, 1.1, 12);
+            const body = new THREE.Mesh(bodyGeo, mat);
+            this.torso.add(body);
+
+            // Open front zipper detail
+            const zipMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+            const zip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.1, 0.1), zipMat);
+            zip.position.set(0, 0, 0.45);
+            this.torso.add(zip);
+        }
+
+        this.torso.position.y = 2.15;
+        this.torso.castShadow = true;
+        this.group.add(this.torso);
+    }
+
+    updateAppearance(options) {
+        if (options.shirtColor !== undefined) this.shirtColor = options.shirtColor;
+        if (options.pantsColor !== undefined) this.pantsColor = options.pantsColor;
+        if (options.skinColor !== undefined) this.skinColor = options.skinColor;
+        if (options.shoeColor !== undefined) this.shoeColor = options.shoeColor;
+        if (options.hairColor !== undefined) this.hairColor = options.hairColor;
+        if (options.hairStyle !== undefined) this.hairStyle = options.hairStyle;
+        if (options.shirtType !== undefined) this.shirtType = options.shirtType;
+
+        // Rebuild visual representation
+        const nameData = this.name;
+
+        // Clear previous meshes
+        while (this.group.children.length > 0) {
+            const child = this.group.children[0];
+            this.group.remove(child);
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) {
+                if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+                else child.material.dispose();
+            }
+        }
+
+        this._build();
+        this._createNameplate();
+        this._createChatBubble();
+        this.updateNameplate(nameData);
     }
 
     _createNameplate() {

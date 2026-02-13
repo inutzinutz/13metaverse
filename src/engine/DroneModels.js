@@ -315,6 +315,23 @@ export class DroneModels {
             });
         });
     }
+
+    /**
+     * Updates the body color of a specific drone display
+     */
+    updateDisplayColor(display, hex) {
+        display.drone.traverse(child => {
+            if (child.isMesh && child.material && !child.material.transparent) {
+                // We want to update the body and arms (which use the bodyColor)
+                // but skip the darkMat and glassMat
+                if (child.material.color.getHex() === display.info.bodyColor || child.userData.isBodyPart) {
+                    child.material.color.setHex(hex);
+                    child.userData.isBodyPart = true; // Mark it so subsequent updates work
+                }
+            }
+        });
+        display.info.bodyColor = hex; // Update ref to track current color
+    }
 }
 
 export { DRONE_CATALOG };

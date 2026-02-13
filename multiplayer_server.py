@@ -46,6 +46,9 @@ class GameServer:
                         'id': player_id,
                         'name': data.get('name', f'Player {player_id}'),
                         'color': player_color,
+                        'hairStyle': data.get('hairStyle', 'short'),
+                        'hairColor': data.get('hairColor', 0x3e2723),
+                        'shirtType': data.get('shirtType', 'tshirt'),
                         'x': random.uniform(6, 10),
                         'y': 0,
                         'z': random.uniform(6, 10),
@@ -69,12 +72,7 @@ class GameServer:
                     # Notify others
                     await self.broadcast({
                         'type': 'player_join',
-                        'id': player_id,
-                        'name': self.players[player_id]['name'],
-                        'color': player_color,
-                        'x': self.players[player_id]['x'],
-                        'y': 0,
-                        'z': self.players[player_id]['z'],
+                        **self.players[player_id]
                     }, exclude=player_id)
 
                     player_count = len(self.players)
@@ -88,6 +86,17 @@ class GameServer:
                         p['z'] = data.get('z', p['z'])
                         p['ry'] = data.get('ry', p['ry'])
                         p['anim'] = data.get('anim', p['anim'])
+
+                elif msg_type == 'appearance_update' and player_id:
+                    if player_id in self.players:
+                        update_data = data.get('data', {})
+                        self.players[player_id].update(update_data)
+                        # Broadcast update to others
+                        await self.broadcast({
+                            'type': 'appearance_update',
+                            'id': player_id,
+                            'data': update_data
+                        }, exclude=player_id)
 
                 elif msg_type == 'chat' and player_id:
                     msg_text = data.get('message', '')[:200]  # limit length

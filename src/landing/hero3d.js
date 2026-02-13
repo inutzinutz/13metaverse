@@ -186,6 +186,7 @@ export class Hero3D {
     }
 
     _buildParticles() {
+        // Layer 1: Foreground/Mid stars
         const count = 2500;
         const positions = new Float32Array(count * 3);
         const colors = new Float32Array(count * 3);
@@ -226,6 +227,27 @@ export class Hero3D {
 
         this.particles = new THREE.Points(geo, mat);
         this.scene.add(this.particles);
+
+        // Layer 2: Deep background glow (fewer, larger)
+        const count2 = 200;
+        const pos2 = new Float32Array(count2 * 3);
+        for (let i = 0; i < count2; i++) {
+            pos2[i * 3] = (Math.random() - 0.5) * 150;
+            pos2[i * 3 + 1] = (Math.random() - 0.5) * 100;
+            pos2[i * 3 + 2] = (Math.random() - 0.5) * 150;
+        }
+        const geo2 = new THREE.BufferGeometry();
+        geo2.setAttribute('position', new THREE.BufferAttribute(pos2, 3));
+        const mat2 = new THREE.PointsMaterial({
+            size: 0.8,
+            color: 0x42a5f5,
+            transparent: true,
+            opacity: 0.2,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+        this.particlesBack = new THREE.Points(geo2, mat2);
+        this.scene.add(this.particlesBack);
     }
 
     _buildGrid() {
@@ -281,10 +303,15 @@ export class Hero3D {
             r.rotation.z += 0.15;
         });
 
-        // Particles slow drift
+        // Particles slow drift — Layer 1
         if (this.particles) {
-            this.particles.rotation.y += 0.0003;
+            this.particles.rotation.y += 0.0003 + scrollFactor * 0.001;
             this.particles.rotation.x += 0.0001;
+        }
+        // Particles Layer 2 (Background) - Different speed/parallax
+        if (this.particlesBack) {
+            this.particlesBack.rotation.y -= 0.0001 + scrollFactor * 0.0005;
+            this.particlesBack.position.y = -scrollFactor * 5;
         }
 
         // Scroll — zoom out camera

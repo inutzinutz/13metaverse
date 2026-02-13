@@ -20,6 +20,10 @@ import { ShoppingCart } from './ui/ShoppingCart.js';
 import { NPCGuide } from './engine/NPCGuide.js';
 import { VoiceChat } from './engine/VoiceChat.js';
 import { ScreenshotSystem } from './ui/ScreenshotSystem.js';
+import { AvatarCustomizer } from './ui/AvatarCustomizer.js';
+import { TopicAgent } from './engine/TopicAgent.js';
+import { FPVInstructor } from './engine/FPVInstructor.js';
+import { DroneSimulator } from './engine/DroneSimulator.js';
 
 /**
  * 13Store Metaverse — Main Game
@@ -50,7 +54,12 @@ class Game {
         this.npcGuide = null;
         this.voiceChat = null;
         this.screenshotSystem = null;
+        this.customizer = null;
+        this.aiAgents = [];
+        this.droneSim = null;
         this._inMeetingZone = false;
+        this._inEducationZone = false;
+        this._inArenaZone = false;
 
         // UI
         this.lobby = new Lobby();
@@ -218,6 +227,67 @@ class Game {
         }
 
         this.state = 'playing';
+
+        // Init AI Agents
+        this._initAIAgents();
+
+        // Init Drone Simulator
+        this.droneSim = new DroneSimulator(this.scene, this.camera, this.controller);
+
+        // Customizer integration
+        const customizerBtn = document.getElementById('customizer-btn');
+        this.customizer = new AvatarCustomizer(this.localAvatar, (appearanceData) => {
+            this.network.send({
+                type: 'appearance_update',
+                data: appearanceData
+            });
+        });
+        if (customizerBtn) customizerBtn.onclick = () => this.customizer.toggle();
+
+        // Product Color Change integration
+        if (this.productPopup) {
+            this.productPopup.onColorChange = (hex) => {
+                const closest = this.droneModels.getClosestDisplay(this.localAvatar.group.position);
+                if (closest) {
+                    this.droneModels.updateDisplayColor(closest, hex);
+                }
+            };
+        }
+
+        // Drone Mode Button
+        const flyBtn = document.createElement('button');
+        flyBtn.id = 'fly-drone-btn';
+        flyBtn.className = 'hud-maps-btn hidden';
+        flyBtn.innerHTML = '🚁 บินโดรน';
+        flyBtn.style.background = 'rgba(226,0,26,0.3)';
+        flyBtn.style.borderColor = '#e2001a';
+        document.querySelector('.hud-top').appendChild(flyBtn);
+
+        flyBtn.onclick = () => {
+            if (!this.droneSim.isActive) {
+                this.droneSim.activate(this.localAvatar.group.position.clone().add(new THREE.Vector3(0, 1.5, 0)));
+                flyBtn.innerHTML = '🚶 กลับมาเดิน';
+                flyBtn.style.background = 'rgba(255,255,255,0.1)';
+            } else {
+                this.droneSim.deactivate();
+                flyBtn.innerHTML = '🚁 บินโดรน';
+                flyBtn.style.background = 'rgba(226,0,26,0.3)';
+            }
+        };
+    }
+
+    _initAIAgents() {
+        // Topic Agent in Education Room
+        const eduAgent = new TopicAgent();
+        eduAgent.setPosition(-35, 0, 36); // On the stage
+        this.scene.add(eduAgent.group);
+        this.aiAgents.push(eduAgent);
+
+        // FPV Instructor in Arena
+        const fpvAgent = new FPVInstructor();
+        fpvAgent.setPosition(0, 0, -50); // Near entrance
+        this.scene.add(fpvAgent.group);
+        this.aiAgents.push(fpvAgent);
     }
 
     _initEngine() {
@@ -350,6 +420,13 @@ class Game {
             this._updatePlayerList();
         };
 
+        this.network.onAppearanceUpdate = (id, appearanceData) => {
+            const avatar = this.remotePlayers.get(id);
+            if (avatar) {
+                avatar.updateAppearance(appearanceData);
+            }
+        };
+
         // Chat send
         this.chat.onSend = (text) => {
             this.network.sendChat(text);
@@ -371,6 +448,9 @@ class Game {
             name: data.name || `Player ${data.id}`,
             shirtColor: data.color || 0x42a5f5,
             pantsColor: this._darkenColor(data.color || 0x42a5f5, 0.6),
+            hairStyle: data.hairStyle || 'short',
+            hairColor: data.hairColor || 0x3e2723,
+            shirtType: data.shirtType || 'tshirt',
             isLocal: false
         });
         avatar.setPosition(data.x || 0, data.y || 0, data.z || 0);
@@ -441,6 +521,32 @@ class Game {
             if (this.posEl) {
                 const p = this.localAvatar.group.position;
                 this.posEl.textContent = `${Math.round(p.x)}, ${Math.round(p.z)}`;
+            }
+
+            // Update World
+            if (this.world) {
+                this.world.updateLiveWall(dt);
+            }
+
+            // Update AI Agents
+            this.aiAgents.forEach(agent => {
+                agent.updateAgent(dt, this.localAvatar.group.position);
+            });
+
+            // Update Drone Simulator or Player Controller
+            if (this.droneSim && this.droneSim.isActive) {
+                this.droneSim.update(dt);
+            } else if (this.controller) {
+                this.controller.update(dt);
+            }
+
+            // Check proximity to FPV Arena
+            const p = this.localAvatar.group.position;
+            const inArena = (p.x > -20 && p.x < 20 && p.z > -75 && p.z < -45);
+            if (inArena !== this._inArenaZone) {
+                this._inArenaZone = inArena;
+                const flyBtn = document.getElementById('fly-drone-btn');
+                if (flyBtn) flyBtn.classList.toggle('hidden', !inArena);
             }
 
             // Check proximity to drone displays

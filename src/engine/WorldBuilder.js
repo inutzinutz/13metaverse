@@ -18,9 +18,11 @@ export class WorldBuilder {
         this._createDJIStores();
         this._createDroneDisplayZone();
         this._createFPVArena();
+        this._createEducationRoom();
         this._createMeetingHall();
         this._createEnvironment();
         this._createLamps();
+        this._createLiveWall();
     }
 
     /* =================== SKY =================== */
@@ -187,7 +189,7 @@ export class WorldBuilder {
         ctx.fillText('DJI', 128, 100);
         ctx.font = 'bold 28px Inter, system-ui, sans-serif';
         ctx.fillStyle = '#e2001a';
-        ctx.fillText('RAMA 9', 128, 145);
+        ctx.fillText('RATCHAPHRUEK', 128, 145);
         ctx.font = 'bold 24px Inter, system-ui, sans-serif';
         ctx.fillStyle = '#e2001a';
         ctx.fillText('SUPER STORE', 128, 185);
@@ -265,7 +267,7 @@ export class WorldBuilder {
         ctx.font = 'bold 48px Inter, system-ui, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillStyle = '#ffffff';
-        ctx.fillText('DJI RAMA 9', 256, 55);
+        ctx.fillText('DJI RATCHAPHRUEK', 256, 55);
         ctx.font = '24px Inter, system-ui, sans-serif';
         ctx.fillStyle = '#e2001a';
         ctx.fillText('SUPER STORE DIGITAL TWIN', 256, 95);
@@ -295,7 +297,7 @@ export class WorldBuilder {
     /* =================== DJI STORES =================== */
     _createDJIStores() {
         this._createStore('ลาดปลาเค้า', -30, 0, -25, 0);
-        this._createStore('Rama 9 Super Store', 30, 0, -25, Math.PI);
+        this._createStore('Ratchaphruek Super Store', 30, 0, -25, Math.PI);
     }
 
     _createStore(branchName, x, y, z, ry) {
@@ -805,5 +807,225 @@ export class WorldBuilder {
         const dx = pos.x - this.meetingZone.x;
         const dz = pos.z - this.meetingZone.z;
         return Math.sqrt(dx * dx + dz * dz) < this.meetingZone.radius;
+    }
+
+    _createEducationRoom() {
+        const group = new THREE.Group();
+
+        // Foundation / Floor
+        const floorGeo = new THREE.BoxGeometry(25, 0.5, 18);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x1f1f1f, roughness: 0.3 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.position.y = 0.25;
+        floor.receiveShadow = true;
+        group.add(floor);
+
+        // Glass Walls
+        const glassMat = new THREE.MeshStandardMaterial({
+            color: 0x88ccff, transparent: true, opacity: 0.15, metalness: 0.9, roughness: 0.1
+        });
+        const wallH = 6;
+
+        // Back wall (solid)
+        const backWall = new THREE.Mesh(new THREE.BoxGeometry(25, wallH, 0.5), floorMat);
+        backWall.position.set(0, wallH / 2, -9);
+        group.add(backWall);
+
+        // Front wall (glass)
+        const frontWall = new THREE.Mesh(new THREE.BoxGeometry(25, wallH, 0.2), glassMat);
+        frontWall.position.set(0, wallH / 2, 9);
+        group.add(frontWall);
+
+        // Side walls (glass)
+        const sideGeo = new THREE.BoxGeometry(0.2, wallH, 18);
+        const lWall = new THREE.Mesh(sideGeo, glassMat);
+        lWall.position.set(-12.5, wallH / 2, 0);
+        group.add(lWall);
+        const rWall = new THREE.Mesh(sideGeo, glassMat);
+        rWall.position.set(12.5, wallH / 2, 0);
+        group.add(rWall);
+
+        // Roof
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(26, 0.4, 19), floorMat);
+        roof.position.y = wallH;
+        group.add(roof);
+
+        // Presentation Screen / Board
+        const boardGeo = new THREE.PlaneGeometry(12, 5);
+        const boardCanvas = document.createElement('canvas');
+        boardCanvas.width = 1024;
+        boardCanvas.height = 512;
+        const ctx = boardCanvas.getContext('2d');
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(0, 0, 1024, 512);
+        ctx.strokeStyle = '#e2001a';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(5, 5, 1014, 502);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 60px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('DJI EDUCATION CENTER', 512, 110);
+        ctx.font = '32px Inter, sans-serif';
+        ctx.fillText('Learn • Create • Innovative', 512, 170);
+
+        ctx.fillStyle = '#e2001a';
+        ctx.font = 'bold 40px Inter, sans-serif';
+        ctx.fillText('FEATURED: FPV FLYING BASICS', 512, 300);
+        ctx.fillStyle = '#888888';
+        ctx.font = '24px Inter, sans-serif';
+        ctx.fillText('Wait for AI Instructor to begin session...', 512, 360);
+
+        const boardTex = new THREE.CanvasTexture(boardCanvas);
+        const board = new THREE.Mesh(boardGeo, new THREE.MeshStandardMaterial({ map: boardTex, emissive: 0x333333 }));
+        board.position.set(0, wallH / 2 + 0.5, -8.7);
+        group.add(board);
+
+        // Classroom Seating
+        for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 4; col++) {
+                const x = (col - 1.5) * 5;
+                const z = (row - 1) * 4 + 2;
+                this._createDesk(group, x, z);
+            }
+        }
+
+        // Room Label Sign
+        const labelGeo = new THREE.PlaneGeometry(4, 1);
+        const labelCanvas = document.createElement('canvas');
+        labelCanvas.width = 256;
+        labelCanvas.height = 64;
+        const lctx = labelCanvas.getContext('2d');
+        lctx.fillStyle = '#1a1a1a';
+        lctx.fillRect(0, 0, 256, 64);
+        lctx.font = 'bold 22px Inter, sans-serif';
+        lctx.textAlign = 'center';
+        lctx.fillStyle = '#e2001a';
+        lctx.fillText('EDUCATION ROOM', 128, 40);
+        const labelTex = new THREE.CanvasTexture(labelCanvas);
+        const label = new THREE.Mesh(labelGeo, new THREE.MeshStandardMaterial({ map: labelTex }));
+        label.position.set(0, 4, 9.11);
+        group.add(label);
+
+        group.position.set(-35, 0, 45); // Placed near store 1
+        this.scene.add(group);
+
+        this.colliders.push(new THREE.Box3().setFromObject(floor));
+        this.colliders.push(new THREE.Box3().setFromObject(backWall));
+    }
+
+    _createDesk(parent, x, z) {
+        const dGroup = new THREE.Group();
+
+        // Desk
+        const desk = new THREE.Mesh(
+            new THREE.BoxGeometry(3, 0.1, 1.2),
+            new THREE.MeshStandardMaterial({ color: 0x2c2c2c })
+        );
+        desk.position.y = 1.25;
+        dGroup.add(desk);
+
+        const legGeo = new THREE.CylinderGeometry(0.05, 0.05, 1.25, 8);
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+        [[-1.4, -0.5], [1.4, -0.5], [-1.4, 0.5], [1.4, 0.5]].forEach(([lx, lz]) => {
+            const leg = new THREE.Mesh(legGeo, legMat);
+            leg.position.set(lx, 0.625, lz);
+            dGroup.add(leg);
+        });
+
+        // Chair
+        const chairSeat = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.1, 0.8), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+        chairSeat.position.set(0, 0.8, 1.2);
+        dGroup.add(chairSeat);
+        const chairBack = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.1), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+        chairBack.position.set(0, 1.2, 1.6);
+        dGroup.add(chairBack);
+
+        dGroup.position.set(x, 0, z);
+        parent.add(dGroup);
+    }
+    /* =================== LIVE WALL =================== */
+    _createLiveWall() {
+        const wallGroup = new THREE.Group();
+
+        // Frame
+        const frameGeo = new THREE.BoxGeometry(10.5, 6.5, 0.4);
+        const frameMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8, roughness: 0.2 });
+        const frame = new THREE.Mesh(frameGeo, frameMat);
+        wallGroup.add(frame);
+
+        // Screen
+        this.liveCanvas = document.createElement('canvas');
+        this.liveCanvas.width = 1024;
+        this.liveCanvas.height = 512;
+        this.liveCtx = this.liveCanvas.getContext('2d');
+
+        this.liveTex = new THREE.CanvasTexture(this.liveCanvas);
+        const screenGeo = new THREE.PlaneGeometry(10, 6);
+        const screenMat = new THREE.MeshBasicMaterial({ map: this.liveTex });
+        this.screen = new THREE.Mesh(screenGeo, screenMat);
+        this.screen.position.z = 0.21;
+        wallGroup.add(this.screen);
+
+        // Stand
+        const stand = new THREE.Mesh(new THREE.BoxGeometry(0.8, 5, 0.4), frameMat);
+        stand.position.y = -4.5;
+        wallGroup.add(stand);
+
+        wallGroup.position.set(0, 7, 25); // Facing spawn
+        wallGroup.rotation.y = Math.PI;
+        this.scene.add(wallGroup);
+
+        this.livePromos = [
+            'DJI RS 4 PRO — ก้าวข้ามขีดจำกัด',
+            'DJI AVATA 2 — สัมผัสประสบการณ์ FPV สุดขีด',
+            'DJI MINI 4 PRO — เล็กที่สุด แต่ฉลาดที่สุด',
+            'SPECIAL EVENT: WORKSHOP วันเสาร์นี้!'
+        ];
+        this.promoIndex = 0;
+        this.promoTimer = 0;
+        this._drawLiveWall(this.livePromos[0]);
+    }
+
+    _drawLiveWall(text) {
+        const ctx = this.liveCtx;
+        const w = 1024; const h = 512;
+
+        // Background gradient
+        const grad = ctx.createLinearGradient(0, 0, w, h);
+        grad.addColorStop(0, '#1a1a1a');
+        grad.addColorStop(1, '#000000');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+
+        // DJI Red bar
+        ctx.fillStyle = '#e2001a';
+        ctx.fillRect(0, 0, 20, h);
+
+        // Promo Text
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 50px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('DJI 13STORE — LATEST NEWS', w / 2, 100);
+
+        ctx.font = '72px Inter, sans-serif';
+        ctx.fillStyle = '#e2001a';
+        ctx.fillText(text, w / 2, h / 2 + 40);
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(40, 40, w - 80, h - 80);
+
+        this.liveTex.needsUpdate = true;
+    }
+
+    updateLiveWall(dt) {
+        if (!this.livePromos) return;
+        this.promoTimer += dt;
+        if (this.promoTimer > 4) {
+            this.promoTimer = 0;
+            this.promoIndex = (this.promoIndex + 1) % this.livePromos.length;
+            this._drawLiveWall(this.livePromos[this.promoIndex]);
+        }
     }
 }

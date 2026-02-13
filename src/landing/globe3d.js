@@ -213,7 +213,7 @@ export class Globe3D {
         ORIGINS.forEach(origin => {
             const start = this._latLonToVec3(origin.lat, origin.lon, this.RADIUS);
             const mid = new THREE.Vector3().addVectors(start, bangkok).multiplyScalar(0.5);
-            mid.normalize().multiplyScalar(this.RADIUS + 1.2);
+            mid.normalize().multiplyScalar(this.RADIUS + 0.8 + Math.random() * 0.4);
 
             const curve = new THREE.QuadraticBezierCurve3(start, mid, bangkok);
             const points = curve.getPoints(50);
@@ -221,29 +221,57 @@ export class Globe3D {
             const mat = new THREE.LineBasicMaterial({
                 color: 0xffa726,
                 transparent: true,
-                opacity: 0.35,
+                opacity: 0.2,
             });
             this.globeGroup.add(new THREE.Line(geo, mat));
 
-            // Animated dot along path
-            const dotGeo = new THREE.SphereGeometry(0.03, 6, 6);
-            const dotMat = new THREE.MeshBasicMaterial({ color: 0xffcc02 });
-            const dot = new THREE.Mesh(dotGeo, dotMat);
-            dot.userData = { curve, phase: Math.random() };
-            this.globeGroup.add(dot);
+            // multiple animated pulses along paths
+            for (let i = 0; i < 3; i++) {
+                const dotGeo = new THREE.SphereGeometry(0.025, 6, 6);
+                const dotMat = new THREE.MeshBasicMaterial({ color: 0xffcc02, transparent: true, opacity: 0.8 });
+                const dot = new THREE.Mesh(dotGeo, dotMat);
+                dot.userData = { curve, phase: Math.random(), speed: 0.1 + Math.random() * 0.1 };
+                this.globeGroup.add(dot);
+            }
         });
     }
 
     _buildAtmosphere() {
         const R = this.RADIUS;
+        // Outer glow sphere
         const atmoGeo = new THREE.SphereGeometry(R + 0.15, 64, 64);
         const atmoMat = new THREE.MeshBasicMaterial({
             color: 0x42a5f5,
             transparent: true,
-            opacity: 0.04,
+            opacity: 0.05,
             side: THREE.BackSide,
         });
         this.globeGroup.add(new THREE.Mesh(atmoGeo, atmoMat));
+
+        // Command Center Holographic Ring (Horizontal)
+        const ringGeo = new THREE.RingGeometry(R + 0.6, R + 0.62, 128);
+        const ringMat = new THREE.MeshBasicMaterial({
+            color: 0xffa726,
+            transparent: true,
+            opacity: 0.1,
+            side: THREE.DoubleSide
+        });
+        const uiRing = new THREE.Mesh(ringGeo, ringMat);
+        uiRing.rotation.x = Math.PI / 2;
+        this.globeGroup.add(uiRing);
+
+        // Dashed holographic ring (Vertical)
+        const vRingGeo = new THREE.RingGeometry(R + 0.8, R + 0.81, 64);
+        const vRingMat = new THREE.MeshBasicMaterial({
+            color: 0x42a5f5,
+            transparent: true,
+            opacity: 0.05,
+            side: THREE.DoubleSide,
+            wireframe: true
+        });
+        const vRing = new THREE.Mesh(vRingGeo, vRingMat);
+        vRing.rotation.y = Math.PI / 2;
+        this.globeGroup.add(vRing);
     }
 
     _latLonToVec3(lat, lon, radius) {
@@ -344,7 +372,8 @@ export class Globe3D {
         // Animated flight path dots
         this.globeGroup.children.forEach(child => {
             if (child.userData.curve) {
-                const p = (t * 0.15 + child.userData.phase) % 1;
+                const speed = child.userData.speed || 0.15;
+                const p = (t * speed + child.userData.phase) % 1;
                 const pos = child.userData.curve.getPoint(p);
                 child.position.copy(pos);
             }
