@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="13 STORE — Enterprise Drone Solutions Thailand | System Integrator + Command Platform + National VTOL Infrastructure">
+    <title>13 STORE | Enterprise Drone Solutions — From Flight to Insight</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="src/landing/landing.css">
+    <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+
+<body>
+
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-logo">
+            <div class="nav-logo-icon">
+                DJI
+                <span class="nav-logo-sub">13STORE</span>
+            </div>
+            <span>13 STORE</span>
+        </div>
+
+        <ul class="nav-links">
+            <li><a href="#hero">หน้าหลัก</a></li>
+            <li><a href="#pain">ทำไมต้องตอนนี้</a></li>
+            <li><a href="#globe">Command Center</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+            <li><a href="#trust">ความน่าเชื่อถือ</a></li>
+            <li><a href="#showroom">Virtual Showroom</a></li>
+        </ul>
+
+        <div class="nav-cta">
+            <button class="btn-outline"
+                onclick="window.open('https://secure-flight-systems.lovable.app','_blank')">ติดต่อเรา</button>
+            <button class="btn-primary">นัด Workshop</button>
+        </div>
+    </nav>
+
+
+    <!-- ===== SECTION 1: 3D HERO ===== -->
+    <section class="hero-section section" id="hero">
+        <div class="hero-canvas-container" id="hero-canvas"></div>
+
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="dot"
+                    style="width:6px;height:6px;background:#ffa726;border-radius:50%;animation:pulse-dot 2s infinite;"></span>
+                Enterprise Drone Solutions
+            </div>
+
+            <h1 class="hero-title">13 STORE</h1>
+            <p class="hero-tagline">Enterprise Team + Command Platform + National VTOL Infrastructure</p>
+            <p class="hero-sub">
+                <span class="thai">จากภารกิจภาคสนาม สู่ข้อมูลเชิงตัดสินใจ</span>
+                From Flight to Insight
+            </p>
+
+            <div class="hero-cta">
+                <button class="btn-primary"
+                    onclick="window.open('https://secure-flight-systems.lovable.app','_blank')">🚀 นัด Workshop</button>
+                <button class="btn-outline"
+                    onclick="document.getElementById('showroom').scrollIntoView({behavior:'smooth'})">🎮 Virtual
+                    Showroom</button>
+            </div>
+        </div>
+
+        <div class="hero-scroll-hint">
+            <div class="scroll-mouse"></div>
+            <span>Scroll to explore</span>
+        </div>
+    </section>
+
+
+    <!-- ===== SECTION 2: PAIN POINTS ===== -->
+    <section class="section pain-section" id="pain">
+        <div class="section-label reveal">
+            <span class="dot"></span>
+            ทำไมต้องตอนนี้?
+        </div>
+        <h2 class="section-title reveal reveal-delay-1">เมืองและพื้นที่ซับซ้อนขึ้นทุกวัน</h2>
+        <p class="section-subtitle reveal reveal-delay-2">ต้องตรวจตราถี่ขึ้น ตอบสนองเร็วขึ้น แต่กำลังคนมีเท่าเดิม</p>
+
+        <div class="pain-grid">
+            <div class="pain-card reveal reveal-delay-1">
+                <div class="pain-icon">⚠️</div>
+                <h3>เหตุเกิดตลอด 24 ชม.</h3>
+                <p>ไฟไหม้ น้ำท่วม ดินถล่ม — ภารกิจด่วนไม่เลือกเวลา ต้องมีระบบพร้อมทุกวินาที</p>
+            </div>
+            <div class="pain-card reveal reveal-delay-2">
+                <div class="pain-icon">👥</div>
+                <h3>กำลังคนไม่พอ</h3>
+                <p>พื้นที่กว้าง ทีมจำกัด ใช้คนตรวจไม่ทัน — ต้องการเทคโนโลยีทดแทน</p>
+            </div>
+            <div class="pain-card reveal reveal-delay-3">
+                <div class="pain-icon">🕐</div>
+                <h3>ตอบสนองช้า</h3>
+                <p>กว่าจะส่งทีม กว่าจะเก็บข้อมูลกลับมา — เสียเวลาทองในการตัดสินใจ</p>
+            </div>
+            <div class="pain-card reveal reveal-delay-4">
+                <div class="pain-icon">👁️</div>
+                <h3>ขาดภาพรวม</h3>
+                <p>ข้อมูลกระจัดกระจาย ไม่มีแพลตฟอร์มรวมศูนย์ ผู้บริหารเห็นภาพไม่ครบ</p>
+            </div>
+        </div>
+
+        <div style="text-align:center;margin-top:40px;" class="reveal">
+            <p
+                style="font-size:1rem;color:rgba(255,255,255,0.5);max-width:600px;margin:0 auto;padding:16px 24px;background:rgba(255,167,38,0.06);border:1px solid rgba(255,167,38,0.12);border-radius:12px;">
+                📈 ต้องมีระบบ 24/7 ที่ทำงานแทนคนได้
+            </p>
+        </div>
+    </section>
+
+
+    <!-- ===== SECTION 3: 3D GLOBE COMMAND CENTER ===== -->
+    <section class="section globe-section" id="globe">
+        <div class="section-label reveal">
+            <span class="dot"></span>
+            Command Center
+        </div>
+        <h2 class="section-title reveal reveal-delay-1">ศูนย์บัญชาการแบบ Real-time</h2>
+        <p class="section-subtitle reveal reveal-delay-2">ครอบคลุมทุกภูมิภาค — คลิกที่จุดเพื่อดู Use Case</p>
+
+        <div class="globe-canvas-container reveal reveal-delay-2" id="globe-canvas">
+            <div class="globe-info-popup" id="globe-popup">
+                <h4 id="popup-title"></h4>
+                <p id="popup-desc"></p>
+            </div>
+        </div>
+
+        <div class="globe-legend reveal reveal-delay-3">
+            <div class="globe-legend-item">
+                <div class="globe-legend-dot" style="background:#ffa726;"></div>
+                <span>ศูนย์บัญชาการ</span>
+            </div>
+            <div class="globe-legend-item">
+                <div class="globe-legend-dot" style="background:#66bb6a;"></div>
+                <span>เกษตร/ป่าไม้</span>
+            </div>
+            <div class="globe-legend-item">
+                <div class="globe-legend-dot" style="background:#42a5f5;"></div>
+                <span>ชายฝั่ง/ทะเล</span>
+            </div>
+            <div class="globe-legend-item">
+                <div class="globe-legend-dot" style="background:#ef5350;"></div>
+                <span>ชายแดน</span>
+            </div>
+            <div class="globe-legend-item">
+                <div class="globe-legend-dot" style="background:#26c6da;"></div>
+                <span>ค้นหา/กู้ภัย</span>
+            </div>
+            <div class="globe-legend-item">
+                <div class="globe-legend-dot" style="background:#ab47bc;"></div>
+                <span>อุตสาหกรรม</span>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ===== SECTION 4: INTEGRATED ARCHITECTURE ===== -->
+    <section class="section arch-section" id="architecture">
+        <div class="section-label reveal">
+            <span class="dot"></span>
+            Integrated Architecture
+        </div>
+        <h2 class="section-title reveal reveal-delay-1">หนึ่งระบบ สามเสาหลัก</h2>
+        <p class="section-subtitle reveal reveal-delay-2">
+            ไม่ใช่แค่ขายโดรน แต่เป็นระบบครบวงจรที่ทำให้ภารกิจสำเร็จ ตั้งแต่ทีม กระบวนการ แพลตฟอร์ม
+            ไปจนถึงโครงสร้างพื้นฐาน
+        </p>
+
+        <div class="arch-grid">
+            <div class="arch-card reveal reveal-delay-1">
+                <div class="arch-icon">👨‍✈️</div>
+                <h3>Enterprise Team</h3>
+                <p>ทีมผู้เชี่ยวชาญอุตสาหกรรมโดรน</p>
+                <ul class="arch-features">
+                    <li>Licensed Pilots ทั่วประเทศ</li>
+                    <li>Pre-flight Planning & Risk Assessment</li>
+                    <li>On-site Training & Workshop</li>
+                    <li>24/7 Technical Support</li>
+                </ul>
+            </div>
+
+            <div class="arch-card reveal reveal-delay-2">
+                <div class="arch-icon">🖥️</div>
+                <h3>AI Command Platform</h3>
+                <p>แพลตฟอร์มจัดการภารกิจอัจฉริยะ</p>
+                <ul class="arch-features">
+                    <li>Real-time Fleet Monitoring</li>
+                    <li>AI Object Detection & Analysis</li>
+                    <li>Automated Report Generation</li>
+                    <li>Multi-site Dashboard</li>
+                </ul>
+            </div>
+
+            <div class="arch-card reveal reveal-delay-3">
+                <div class="arch-icon">🚁</div>
+                <h3>Autonomous Drones</h3>
+                <p>โดรนอัตโนมัติระดับองค์กร</p>
+                <ul class="arch-features">
+                    <li>DJI Dock 2 — Auto Take-off/Land</li>
+                    <li>Matrice 350 RTK — Heavy Payload</li>
+                    <li>Altura VTOL — Long Range 100km+</li>
+                    <li>FlyCart 30 — Cargo Delivery</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ===== SECTION 5: TRUST & CREDENTIALS ===== -->
+    <section class="section trust-section" id="trust">
+        <div class="section-label reveal">
+            <span class="dot"></span>
+            Trust & Credentials
+        </div>
+        <h2 class="section-title reveal reveal-delay-1">มาตรฐานที่คุณวางใจได้</h2>
+        <p class="section-subtitle reveal reveal-delay-2">ได้รับความไว้วางใจจากภาครัฐและเอกชนชั้นนำ</p>
+
+        <div class="trust-grid">
+            <div class="trust-card reveal reveal-delay-1">
+                <div class="trust-icon">🏅</div>
+                <div class="trust-number" data-count="1" data-prefix="" data-suffix="">DJI</div>
+                <div class="trust-label">Authorized Dealer</div>
+                <div class="trust-detail">ตัวแทนจำหน่ายอย่างเป็นทางการ</div>
+            </div>
+
+            <div class="trust-card reveal reveal-delay-2">
+                <div class="trust-icon">⏰</div>
+                <div class="trust-number" data-count="15" data-suffix="+">0</div>
+                <div class="trust-label">ปีประสบการณ์</div>
+                <div class="trust-detail">เชี่ยวชาญโซลูชันโดรนองค์กร</div>
+            </div>
+
+            <div class="trust-card reveal reveal-delay-3">
+                <div class="trust-icon">✅</div>
+                <div class="trust-number"
+                    style="-webkit-text-fill-color:unset;background:none;color:#ffa726;font-size:1.8rem;">ISO</div>
+                <div class="trust-label">Certified</div>
+                <div class="trust-detail">มาตรฐานการบริการระดับสากล</div>
+            </div>
+
+            <div class="trust-card reveal reveal-delay-4">
+                <div class="trust-icon">🏢</div>
+                <div class="trust-number" data-count="50" data-suffix="+">0</div>
+                <div class="trust-label">องค์กรไว้วางใจ</div>
+                <div class="trust-detail">ภาครัฐและเอกชนชั้นนำ</div>
+            </div>
+        </div>
+
+        <!-- Quote -->
+        <div class="reveal"
+            style="max-width:700px;text-align:center;padding:24px 32px;background:rgba(255,167,38,0.05);border:1px solid rgba(255,167,38,0.12);border-radius:16px;">
+            <p style="font-size:1.05rem;font-style:italic;color:rgba(255,255,255,0.75);line-height:1.7;">
+                "13 STORE ไม่ได้ขายโดรน แต่ดูแลภารกิจสำคัญขององค์กรให้ปลอดภัย มีข้อมูล และตัดสินใจได้เร็วขึ้น"
+            </p>
+        </div>
+    </section>
+
+
+    <!-- ===== SECTION 6: VIRTUAL SHOWROOM PORTAL ===== -->
+    <section class="section portal-section" id="showroom">
+        <div class="section-label reveal">
+            <span class="dot"></span>
+            Virtual Showroom
+        </div>
+        <h2 class="section-title reveal reveal-delay-1">สำรวจโชว์รูม 3D ของเรา</h2>
+        <p class="section-subtitle reveal reveal-delay-2">
+            เข้าชมโดรน DJI ทุกรุ่นในโลก 3D · พบปะเพื่อนร่วมงาน · ดูสินค้าแบบ Interactive
+        </p>
+
+        <div class="portal-canvas-container reveal reveal-delay-2" id="portal-canvas">
+            <div class="portal-overlay">
+                <div class="portal-info">
+                    <h3>DJI 13Store Virtual Showroom</h3>
+                    <p>Multiplayer 3D Experience — เดินชม สำรวจ พูดคุย</p>
+                </div>
+                <button class="portal-enter-btn" onclick="window.location.href='index.html'">
+                    🎮 เข้าชม Virtual Showroom
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <h4>13 STORE — Enterprise Drone Solutions</h4>
+                <p>DJI Authorized Dealer Thailand</p>
+            </div>
+            <div class="footer-links">
+                <a href="https://www.dji13store.com" target="_blank">🌐 dji13store.com</a>
+                <a href="#hero">กลับด้านบน ↑</a>
+            </div>
+            <div class="footer-contact">
+                <p>ลาดปลาเค้า · ราชพฤกษ์</p>
+                <a href="https://secure-flight-systems.lovable.app" target="_blank">ติดต่อเรา →</a>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- ===== INIT SCRIPTS ===== -->
+    <script type="module">
+        import { Hero3D } from './src/landing/hero3d.js';
+        import { Globe3D } from './src/landing/globe3d.js';
+        import { ShowroomPortal } from './src/landing/showroom-portal.js';
+        import { ScrollEngine } from './src/landing/scroll-engine.js';
+
+        // Lazy-init 3D scenes when sections come into view
+        const lazyObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                const id = entry.target.id;
+
+                if (id === 'hero-canvas' && !entry.target._init) {
+                    entry.target._init = true;
+                    new Hero3D(entry.target);
+                }
+                if (id === 'globe-canvas' && !entry.target._init) {
+                    entry.target._init = true;
+                    const globe = new Globe3D(entry.target);
+                    // Hook up popup
+                    const popup = document.getElementById('globe-popup');
+                    const titleEl = document.getElementById('popup-title');
+                    const descEl = document.getElementById('popup-desc');
+                    let hideTimeout;
+
+                    globe.onHotspotHover = (data) => {
+                        titleEl.textContent = data.label;
+                        descEl.textContent = data.desc;
+                        popup.style.left = Math.min(data.screenX, entry.target.clientWidth - 300) + 'px';
+                        popup.style.top = Math.min(data.screenY - 120, entry.target.clientHeight - 100) + 'px';
+                        popup.classList.add('visible');
+                        clearTimeout(hideTimeout);
+                        hideTimeout = setTimeout(() => popup.classList.remove('visible'), 3000);
+                    };
+                }
+                if (id === 'portal-canvas' && !entry.target._init) {
+                    entry.target._init = true;
+                    new ShowroomPortal(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Observe 3D containers for lazy init
+            ['hero-canvas', 'globe-canvas', 'portal-canvas'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) lazyObserver.observe(el);
+            });
+
+            // Start scroll engine
+            new ScrollEngine();
+
+            // Smooth scroll nav links
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const target = document.querySelector(link.getAttribute('href'));
+                    if (target) target.scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>

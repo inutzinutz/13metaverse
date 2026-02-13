@@ -5,10 +5,14 @@ import { PlayerController } from './engine/PlayerController.js';
 import { NetworkManager } from './engine/NetworkManager.js';
 import { DroneModels, DRONE_CATALOG } from './engine/DroneModels.js';
 import { MeetingRoom } from './engine/MeetingRoom.js';
+import { DayNightCycle } from './engine/DayNightCycle.js';
+import { WeatherSystem } from './engine/WeatherSystem.js';
 import { ChatPanel } from './ui/ChatPanel.js';
 import { ProductPopup } from './ui/ProductPopup.js';
 import { LoginScreen } from './ui/LoginScreen.js';
 import { Whiteboard } from './ui/Whiteboard.js';
+import { EmoteSystem } from './ui/EmoteSystem.js';
+import { MiniMap } from './ui/MiniMap.js';
 import { Lobby } from './ui/Lobby.js';
 
 /**
@@ -30,6 +34,10 @@ class Game {
         this.meetingRoom = null;
         this.whiteboard = null;
         this.loginScreen = null;
+        this.emoteSystem = null;
+        this.miniMap = null;
+        this.dayNight = null;
+        this.weatherSystem = null;
         this._inMeetingZone = false;
 
         // UI
@@ -105,6 +113,12 @@ class Game {
         // Meeting room & Whiteboard
         this.meetingRoom = new MeetingRoom();
         this.whiteboard = new Whiteboard(this.network);
+
+        // Gameplay systems
+        this.emoteSystem = new EmoteSystem(this.network);
+        this.miniMap = new MiniMap();
+        this.dayNight = new DayNightCycle(this.scene);
+        this.weatherSystem = new WeatherSystem(this.scene);
 
         // Keyboard shortcuts for enterprise features
         window.addEventListener('keydown', (e) => {
@@ -403,6 +417,34 @@ class Game {
         this.remotePlayers.forEach(avatar => {
             avatar.update(dt);
         });
+
+        // Update day/night cycle
+        if (this.dayNight) {
+            this.dayNight.update(dt);
+        }
+
+        // Update weather
+        if (this.weatherSystem && this.localAvatar) {
+            this.weatherSystem.update(dt, this.localAvatar.group.position);
+        }
+
+        // Update emote animation
+        if (this.emoteSystem && this.localAvatar) {
+            this.emoteSystem.applyToAvatar(this.localAvatar, dt);
+        }
+
+        // Update mini-map
+        if (this.miniMap && this.localAvatar) {
+            const pos = this.localAvatar.group.position;
+            const remoteData = [];
+            this.remotePlayers.forEach(a => {
+                remoteData.push({ x: a.group.position.x, z: a.group.position.z });
+            });
+            this.miniMap.update(
+                { x: pos.x, z: pos.z, ry: this.localAvatar.group.rotation.y },
+                remoteData
+            );
+        }
 
         // Render
         if (this.renderer && this.scene && this.camera) {
