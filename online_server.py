@@ -180,6 +180,29 @@ class GameServer:
                         'data': data.get('data', {})
                     }, exclude=player_id)
 
+                elif msg_type == 'world_edit' and player_id:
+                    # Relay world edits (spawn, delete, move)
+                    await self.broadcast({
+                        'type': 'world_edit',
+                        'id': player_id,
+                        'action': data.get('action'),
+                        'data': data.get('data', {})
+                    }, exclude=player_id)
+
+                elif msg_type == 'voice_talking' and player_id:
+                    # Broadcast who is talking for proximity indicators
+                    await self.broadcast({
+                        'type': 'voice_talking',
+                        'id': player_id,
+                        'talking': data.get('talking', False)
+                    }, exclude=player_id)
+
+                elif msg_type == 'voice_ready' and player_id:
+                    await self.broadcast({
+                        'type': 'voice_ready',
+                        'id': player_id
+                    }, exclude=player_id)
+
         except websockets.exceptions.ConnectionClosed:
             pass
         except Exception as e:
@@ -310,6 +333,25 @@ def handle_api(request, url_path):
         else:
             resp_body = json.dumps({'error': 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'}).encode()
             return Response(HTTPStatus.UNAUTHORIZED, "", json_headers, resp_body)
+
+    elif url_path == '/api/world':
+        world_file = ROOT_DIR / 'world.json'
+        if request.method == 'POST':
+            # Save world state
+            try:
+                with open(world_file, 'w') as f:
+                    json.dump(data, f)
+                return Response(HTTPStatus.OK, "", json_headers, b'{"success":true}')
+            except Exception as e:
+                resp_body = json.dumps({'error': str(e)}).encode()
+                return Response(HTTPStatus.INTERNAL_SERVER_ERROR, "", json_headers, resp_body)
+        else:
+            # Load world state
+            if world_file.exists():
+                body = world_file.read_bytes()
+                return Response(HTTPStatus.OK, "", json_headers, body)
+            else:
+                return Response(HTTPStatus.OK, "", json_headers, b'{"objects":[]}')
 
     else:
         resp_body = json.dumps({'error': 'Not found'}).encode()

@@ -15,6 +15,11 @@ import { EmoteSystem } from './ui/EmoteSystem.js';
 import { MiniMap } from './ui/MiniMap.js';
 import { MobileControls } from './ui/MobileControls.js';
 import { Lobby } from './ui/Lobby.js';
+import { WorldEditor } from './engine/WorldEditor.js';
+import { ShoppingCart } from './ui/ShoppingCart.js';
+import { NPCGuide } from './engine/NPCGuide.js';
+import { VoiceChat } from './engine/VoiceChat.js';
+import { ScreenshotSystem } from './ui/ScreenshotSystem.js';
 
 /**
  * 13Store Metaverse — Main Game
@@ -40,6 +45,11 @@ class Game {
         this.dayNight = null;
         this.weatherSystem = null;
         this.mobileControls = null;
+        this.worldEditor = null;
+        this.cart = null;
+        this.npcGuide = null;
+        this.voiceChat = null;
+        this.screenshotSystem = null;
         this._inMeetingZone = false;
 
         // UI
@@ -119,9 +129,21 @@ class Game {
         // Gameplay systems
         this.emoteSystem = new EmoteSystem(this.network);
         this.miniMap = new MiniMap();
-        this.dayNight = new DayNightCycle(this.scene);
+        this.dayNight = new DayNightCycle(this.scene, true); // Real-time sync enabled
         this.weatherSystem = new WeatherSystem(this.scene);
         this.mobileControls = new MobileControls();
+
+        // Phase 6 Systems
+        this.cart = new ShoppingCart();
+        window.__cart = this.cart; // Global ref for button clicks
+        this.productPopup.onAddToCart = (product) => this.cart.addItem(product);
+
+        this.worldEditor = new WorldEditor(this.scene, this.camera, this.renderer, this.network);
+        this.worldEditor.loadWorld();
+
+        this.npcGuide = new NPCGuide(this.scene);
+        this.voiceChat = new VoiceChat(this.network);
+        this.screenshotSystem = new ScreenshotSystem(this.renderer);
 
         // Keyboard shortcuts for enterprise features
         window.addEventListener('keydown', (e) => {
@@ -129,12 +151,22 @@ class Game {
             if (e.key === 'm' || e.key === 'M') {
                 if (this._inMeetingZone) {
                     this.meetingRoom.open('DJI 13Store', this.localAvatar?.name || 'Guest');
+                } else {
+                    this.chat?.addSystemMessage('❌ ห้องประชุมต้องใช้งานในอาคาร Meeting Hall เท่านั้น');
                 }
             }
             if (e.key === 'b' || e.key === 'B') {
                 if (this._inMeetingZone) {
                     this.whiteboard.toggle();
+                } else {
+                    this.chat?.addSystemMessage('❌ ไวท์บอร์ดต้องใช้งานในอาคาร Meeting Hall เท่านั้น');
                 }
+            }
+            if (e.key === 'p' || e.key === 'P') {
+                this.worldEditor?.toggle();
+            }
+            if (e.key === 'g' || e.key === 'G') {
+                this.npcGuide?.toggle();
             }
         });
 
@@ -272,7 +304,27 @@ class Game {
 
         this.network.onChatMessage = (data) => {
             const colorHex = '#' + (data.color || 0xffffff).toString(16).padStart(6, '0');
-            this.chat.addMessage(data.name, data.message, colorHex);
+            this.chat?.addMessage(data.name, data.message, colorHex);
+
+            // Show chat bubble above avatar
+            if (data.id === this.network.playerId) {
+                this.localAvatar?.showChatBubble(data.message);
+            } else {
+                const avatar = this.remotePlayers.get(data.id);
+                avatar?.showChatBubble(data.message);
+            }
+        };
+
+        this.network.onWorldEdit = (data) => {
+            if (this.worldEditor) {
+                this.worldEditor.handleRemoteEdit(data.action, data.data);
+            }
+        };
+
+        this.network.onVoiceTalking = (data) => {
+            if (this.voiceChat) {
+                this.voiceChat.handlePeerTalking(data.id, data.talking);
+            }
         };
 
         this.network.onPlayerList = (players) => {
@@ -429,6 +481,16 @@ class Game {
         // Update weather
         if (this.weatherSystem && this.localAvatar) {
             this.weatherSystem.update(dt, this.localAvatar.group.position);
+        }
+
+        // Update NPC Guide
+        if (this.npcGuide) {
+            this.npcGuide.update(dt);
+        }
+
+        // Update Voice Chat Proximity
+        if (this.voiceChat && this.localAvatar) {
+            this.voiceChat.updateProximity(this.localAvatar.group.position, this.remotePlayers);
         }
 
         // Update emote animation

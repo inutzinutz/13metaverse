@@ -5,13 +5,26 @@ import * as THREE from 'three';
  * 5-minute full cycle: dawn → day → dusk → night → dawn
  */
 export class DayNightCycle {
-    constructor(scene) {
+    constructor(scene, syncRealTime = false) {
         this.scene = scene;
-        this.time = 0.25; // Start at morning (0=midnight, 0.25=dawn, 0.5=noon, 0.75=dusk)
-        this.speed = 1 / 300; // Full cycle = 300 seconds (5 min)
+        this.syncRealTime = syncRealTime;
+        this.time = 0.25;
+        this.speed = 1 / 300;
         this.sunLight = null;
         this.ambientLight = null;
+
+        if (this.syncRealTime) {
+            this._syncWithClock();
+        }
+
         this._init();
+    }
+
+    _syncWithClock() {
+        const now = new Date();
+        const hours = now.getHours();
+        const mins = now.getMinutes();
+        this.time = (hours + mins / 60) / 24;
     }
 
     _init() {
@@ -41,8 +54,12 @@ export class DayNightCycle {
     }
 
     update(dt) {
-        this.time += this.speed * dt;
-        if (this.time > 1) this.time -= 1;
+        if (this.syncRealTime) {
+            this._syncWithClock();
+        } else {
+            this.time += this.speed * dt;
+            if (this.time > 1) this.time -= 1;
+        }
 
         const t = this.time;
         // Sun angle (0=below, 0.5=zenith)

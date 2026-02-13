@@ -16,6 +16,9 @@ export class NetworkManager {
         this.onChatMessage = null;
         this.onPlayerList = null;
         this.onWhiteboard = null;
+        this.onWorldEdit = null;
+        this.onVoiceTalking = null;
+        this.onVoiceReady = null;
 
         this._sendInterval = null;
     }
@@ -97,6 +100,15 @@ export class NetworkManager {
             case 'whiteboard':
                 if (this.onWhiteboard) this.onWhiteboard(data.data);
                 break;
+            case 'world_edit':
+                if (this.onWorldEdit) this.onWorldEdit(data);
+                break;
+            case 'voice_talking':
+                if (this.onVoiceTalking) this.onVoiceTalking(data);
+                break;
+            case 'voice_ready':
+                if (this.onVoiceReady) this.onVoiceReady(data);
+                break;
         }
     }
 
@@ -124,6 +136,10 @@ export class NetworkManager {
         if (this.isConnected) {
             this._send({ type: 'chat', message });
         }
+    }
+
+    send(data) {
+        this._send(data);
     }
 
     _send(data) {

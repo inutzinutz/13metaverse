@@ -22,6 +22,80 @@ export class Avatar {
 
         this._build();
         this._createNameplate();
+        this._createChatBubble();
+    }
+
+    _createChatBubble() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        this._bubbleCtx = ctx;
+        this._bubbleCanvas = canvas;
+
+        const texture = new THREE.CanvasTexture(canvas);
+        this._bubbleTexture = texture;
+
+        const spriteMat = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            depthTest: false
+        });
+        this.chatBubble = new THREE.Sprite(spriteMat);
+        this.chatBubble.position.y = 5.0; // Above nameplate
+        this.chatBubble.scale.set(4, 1, 1);
+        this.chatBubble.visible = false;
+        this.group.add(this.chatBubble);
+
+        this._bubbleTimeout = null;
+    }
+
+    showChatBubble(text) {
+        const ctx = this._bubbleCtx;
+        const canvas = this._bubbleCanvas;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw bubble background (rounded rect with arrow)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        const w = canvas.width, h = canvas.height;
+        const padding = 10;
+
+        // Bubble body
+        ctx.beginPath();
+        const rectW = w - 40;
+        const rectH = h - 40;
+        const startX = 20;
+        const startY = 10;
+        ctx.roundRect(startX, startY, rectW, rectH, 15);
+        ctx.fill();
+
+        // Arrow pointing down
+        ctx.beginPath();
+        ctx.moveTo(w / 2 - 15, startY + rectH);
+        ctx.lineTo(w / 2 + 15, startY + rectH);
+        ctx.lineTo(w / 2, startY + rectH + 15);
+        ctx.closePath();
+        ctx.fill();
+
+        // Text
+        ctx.font = 'bold 28px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#1a1a1a';
+
+        // Handle long text (simple truncation for now)
+        let displayMsg = text;
+        if (displayMsg.length > 35) displayMsg = displayMsg.substring(0, 32) + '...';
+        ctx.fillText(displayMsg, w / 2, startY + rectH / 2);
+
+        this._bubbleTexture.needsUpdate = true;
+        this.chatBubble.visible = true;
+
+        if (this._bubbleTimeout) clearTimeout(this._bubbleTimeout);
+        this._bubbleTimeout = setTimeout(() => {
+            this.chatBubble.visible = false;
+        }, 5000);
     }
 
     _build() {

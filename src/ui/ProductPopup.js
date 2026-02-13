@@ -20,14 +20,24 @@ export class ProductPopup {
                     <div class="pp-name"></div>
                     <div class="pp-specs"></div>
                     <div class="pp-price"></div>
+                    <button class="pp-cart-btn" id="pp-add-cart">
+                        ➕ เพิ่มลงตะกร้า
+                    </button>
                     <a class="pp-buy" href="#" target="_blank">
-                        🛒 สั่งซื้อที่ DJI 13Store
+                        🌐 สั่งซื้อที่ DJI 13Store
                     </a>
                     <div class="pp-hint">กด E เพื่อปิด · เดินออกห่างเพื่อซ่อน</div>
                 </div>
             </div>
         `;
         document.body.appendChild(this.el);
+
+        this.onAddToCart = null;
+        document.getElementById('pp-add-cart').addEventListener('click', () => {
+            if (this.onAddToCart && this.productData) {
+                this.onAddToCart(this.productData);
+            }
+        });
 
         // Style
         const style = document.createElement('style');
@@ -94,6 +104,25 @@ export class ProductPopup {
                 transition: background 0.2s;
             }
             .pp-buy:hover { background: #ff1a33; }
+            .pp-cart-btn {
+                display: block;
+                width: 100%;
+                text-align: center;
+                padding: 12px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: #fff;
+                border-radius: 10px;
+                font-weight: 700;
+                font-size: 15px;
+                margin-bottom: 10px;
+                cursor: pointer;
+                transition: background 0.2s, border-color 0.2s;
+            }
+            .pp-cart-btn:hover {
+                background: rgba(255, 255, 255, 0.15);
+                border-color: rgba(255, 255, 255, 0.4);
+            }
             .pp-hint {
                 text-align: center;
                 font-size: 11px;
@@ -107,10 +136,11 @@ export class ProductPopup {
     show(product) {
         if (this.currentProduct === product.id) return;
         this.currentProduct = product.id;
+        this.productData = product;
 
         this.el.querySelector('.pp-name').textContent = product.name;
         this.el.querySelector('.pp-specs').textContent = product.specs;
-        this.el.querySelector('.pp-price').textContent = product.price;
+        this.el.querySelector('.pp-price').textContent = typeof product.price === 'number' ? `฿${product.price.toLocaleString()}` : product.price;
         this.el.querySelector('.pp-buy').href = product.url;
 
         this.el.classList.add('visible');
