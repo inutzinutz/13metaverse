@@ -87,7 +87,7 @@ export class NPCGuide {
         canvas.width = 256; canvas.height = 64;
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.roundRect(0, 0, 256, 64, 12);
+        ctx.roundRect ? ctx.roundRect(0, 0, 256, 64, 12) : ctx.rect(0, 0, 256, 64);
         ctx.fill();
         ctx.fillStyle = '#e2001a';
         ctx.font = 'bold 24px sans-serif';

@@ -21,9 +21,9 @@ import { NPCGuide } from './engine/NPCGuide.js';
 import { VoiceChat } from './engine/VoiceChat.js';
 import { ScreenshotSystem } from './ui/ScreenshotSystem.js';
 import { AvatarCustomizer } from './ui/AvatarCustomizer.js';
-import { TopicAgent } from './engine/TopicAgent.js';
-import { FPVInstructor } from './engine/FPVInstructor.js';
 import { DroneSimulator } from './engine/DroneSimulator.js';
+import { npcMemory } from './engine/NPCMemorySystem.js';
+import { NPCSettingsPanel } from './ui/NPCSettingsPanel.js';
 
 /**
  * 13Store Metaverse — Main Game
@@ -57,6 +57,7 @@ class Game {
         this.customizer = null;
         this.aiAgents = [];
         this.droneSim = null;
+        this.npcSettings = null;
         this._inMeetingZone = false;
         this._inEducationZone = false;
         this._inArenaZone = false;
@@ -163,6 +164,7 @@ class Game {
         this.npcGuide = new NPCGuide(this.scene);
         this.voiceChat = new VoiceChat(this.network);
         this.screenshotSystem = new ScreenshotSystem(this.renderer);
+        this.npcSettings = new NPCSettingsPanel(npcMemory);
 
         // Keyboard shortcuts for enterprise features
         window.addEventListener('keydown', (e) => {
@@ -186,6 +188,9 @@ class Game {
             }
             if (e.key === 'g' || e.key === 'G') {
                 this.npcGuide?.toggle();
+            }
+            if (e.key === 'n' || e.key === 'N') {
+                this.npcSettings?.toggle();
             }
         });
 
@@ -290,12 +295,27 @@ class Game {
         // Topic Agent in Education Room
         const eduAgent = new TopicAgent();
         eduAgent.setPosition(-35, 0, 36); // On the stage
+        eduAgent.setWaypoints([
+            new THREE.Vector3(-35, 0, 36),
+            new THREE.Vector3(-25, 0, 30),
+            new THREE.Vector3(-30, 0, 25),
+            new THREE.Vector3(-40, 0, 25)
+        ]);
+        eduAgent.setMoodColor(0x7cfc00); // Sarah is helpful (Green)
         this.scene.add(eduAgent.group);
         this.aiAgents.push(eduAgent);
 
         // FPV Instructor in Arena
         const fpvAgent = new FPVInstructor();
         fpvAgent.setPosition(0, 0, -50); // Near entrance
+        fpvAgent.setWaypoints([
+            new THREE.Vector3(0, 0, -50),
+            new THREE.Vector3(15, 0, -45),
+            new THREE.Vector3(15, 0, -65),
+            new THREE.Vector3(-15, 0, -65),
+            new THREE.Vector3(-15, 0, -45)
+        ]);
+        fpvAgent.setMoodColor(0xe2001a); // Captain DJI is branded (Red)
         this.scene.add(fpvAgent.group);
         this.aiAgents.push(fpvAgent);
     }
@@ -575,6 +595,16 @@ class Game {
                 this._inMeetingZone = this.world.isInMeetingZone(this.localAvatar.group.position);
                 if (this._inMeetingZone && !wasIn && this.chat) {
                     this.chat.addSystemMessage('📹 ห้องประชุม — กด M เพื่อเปิด Meeting · กด B เพื่อเปิด Whiteboard');
+                    npcMemory.recordEvent('location_visit', { id: 'meeting_hall', name: 'Meeting Hall' });
+                }
+
+                // Track Education Room (Sarah's area)
+                const inEdu = (p.x > -50 && p.x < -20 && p.z > 20 && p.z < 50);
+                if (inEdu && !this._inEducationZone) {
+                    this._inEducationZone = true;
+                    npcMemory.recordEvent('location_visit', { id: 'education_room', name: 'Education Room' });
+                } else if (!inEdu) {
+                    this._inEducationZone = false;
                 }
             }
         }
@@ -582,6 +612,11 @@ class Game {
         // Update drone display animations
         if (this.droneModels) {
             this.droneModels.update(dt);
+            // Record product view if player stays near a drone
+            const closest = this.droneModels.getClosestDisplay(this.localAvatar.group.position);
+            if (closest) {
+                npcMemory.recordEvent('product_view', { id: closest.info.id, name: closest.info.name });
+            }
         }
 
         // Update remote avatars
@@ -601,7 +636,14 @@ class Game {
 
         // Update NPC Guide
         if (this.npcGuide) {
-            this.npcGuide.update(dt);
+            this.npcGuide.update(dt, this.localAvatar.group.position);
+        }
+
+        // Update AI Agents (Autonomous Routines & Gossip)
+        if (this.localAvatar) {
+            this.aiAgents.forEach(agent => {
+                agent.updateAgent(dt, this.localAvatar.group.position);
+            });
         }
 
         // Update Voice Chat Proximity

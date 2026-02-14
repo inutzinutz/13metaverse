@@ -304,7 +304,7 @@ export class DroneModels {
         // Background
         ctx.fillStyle = 'rgba(26, 26, 26, 0.9)';
         ctx.beginPath();
-        ctx.roundRect(0, 0, 512, 128, 12);
+        ctx.roundRect ? ctx.roundRect(0, 0, 512, 128, 12) : ctx.rect(0, 0, 512, 128);
         ctx.fill();
 
         // Red accent bar

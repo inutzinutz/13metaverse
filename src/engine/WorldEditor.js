@@ -351,7 +351,8 @@ export class WorldEditor {
 
     async loadWorld() {
         try {
-            const resp = await fetch('/api/world');
+            // Using a local file instead of an API to prevent 404 on simple development server
+            const resp = await fetch('./world_data.json');
             if (!resp.ok) return;
             const data = await resp.json();
             if (data.objects) {

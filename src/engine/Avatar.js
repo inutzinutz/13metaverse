@@ -70,7 +70,7 @@ export class Avatar {
         const rectH = h - 40;
         const startX = 20;
         const startY = 10;
-        ctx.roundRect(startX, startY, rectW, rectH, 15);
+        ctx.roundRect ? ctx.roundRect(startX, startY, rectW, rectH, 15) : ctx.rect(startX, startY, rectW, rectH);
         ctx.fill();
 
         // Arrow pointing down
@@ -344,7 +344,7 @@ export class Avatar {
         ctx.fillStyle = 'rgba(0,0,0,0.55)';
         const w = canvas.width, h = canvas.height;
         ctx.beginPath();
-        ctx.roundRect(16, 10, w - 32, h - 20, 20);
+        ctx.roundRect ? ctx.roundRect(16, 10, w - 32, h - 20, 20) : ctx.rect(16, 10, w - 32, h - 20);
         ctx.fill();
 
         // Text
