@@ -66,6 +66,26 @@ const DRONE_CATALOG = [
         size: 0.5,
         type: 'mini',
     },
+    {
+        id: 'pocket3',
+        name: 'Osmo Pocket 3',
+        price: '฿17,990',
+        specs: '1" CMOS Sensor | 4K/120fps | 3-Axis Stabilization | Vertical Shooting',
+        url: 'https://www.dji13store.com/product/dji-osmo-pocket-3/',
+        bodyColor: 0x0a0a0a,
+        size: 0.4,
+        type: 'handheld',
+    },
+    {
+        id: 'action4',
+        name: 'Osmo Action 4',
+        price: '฿11,500',
+        specs: '1/1.3" Sensor | 4K/120fps | Waterproof 18m | Color Temp Sensor',
+        url: 'https://www.dji13store.com/product/dji-osmo-action-4-standard-combo/',
+        bodyColor: 0x0a0a0a,
+        size: 0.35,
+        type: 'handheld',
+    }
 ];
 
 export class DroneModels {
@@ -163,6 +183,40 @@ export class DroneModels {
         });
 
         // Body
+        if (catalog.type === 'handheld') {
+            if (catalog.id === 'pocket3') {
+                // Pocket 3 Handle
+                const handle = new THREE.Mesh(new THREE.BoxGeometry(0.12 * s, 0.7 * s, 0.12 * s), bodyMat);
+                group.add(handle);
+                // Gimbal Head
+                const head = new THREE.Mesh(new THREE.BoxGeometry(0.15 * s, 0.15 * s, 0.15 * s), bodyMat);
+                head.position.y = 0.4 * s;
+                group.add(head);
+                // Lens
+                const lens = new THREE.Mesh(new THREE.CircleGeometry(0.06 * s, 16), glassMat);
+                lens.position.set(0, 0.4 * s, 0.08 * s);
+                group.add(lens);
+                // Rotating Screen
+                const screen = new THREE.Mesh(new THREE.BoxGeometry(0.2 * s, 0.12 * s, 0.02 * s), glassMat);
+                screen.position.set(0, 0.05 * s, 0.07 * s);
+                group.add(screen);
+            } else {
+                // Action 4 Body
+                const actionBody = new THREE.Mesh(new THREE.BoxGeometry(0.4 * s, 0.3 * s, 0.2 * s), bodyMat);
+                group.add(actionBody);
+                // Big Round Lens
+                const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * s, 0.12 * s, 0.05 * s, 16), glassMat);
+                lens.rotation.x = Math.PI / 2;
+                lens.position.set(-0.08 * s, 0, 0.12 * s);
+                group.add(lens);
+                // Front Screen
+                const fScreen = new THREE.Mesh(new THREE.BoxGeometry(0.12 * s, 0.12 * s, 0.02 * s), glassMat);
+                fScreen.position.set(0.1 * s, 0, 0.11 * s);
+                group.add(fScreen);
+            }
+            return group; // Skip arms/props for handheld
+        }
+
         if (catalog.type === 'fpv') {
             // FPV: more aerodynamic body
             const bodyGeo = new THREE.CapsuleGeometry(0.18 * s, 0.4 * s, 8, 12);

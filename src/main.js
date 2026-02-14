@@ -131,6 +131,16 @@ class Game {
             }
         });
 
+        // Place Osmo Handhelds in Ratchaphruek Store
+        const handheldPositions = this.world.getHandheldDisplayPositions();
+        const handheldIds = ['pocket3', 'action4'];
+        handheldIds.forEach((id, i) => {
+            if (handheldPositions[i]) {
+                // Facing the viewer walking in
+                this.droneModels.createDisplay(id, handheldPositions[i], Math.PI);
+            }
+        });
+
         // Meeting room & Whiteboard
         this.meetingRoom = new MeetingRoom();
         this.whiteboard = new Whiteboard(this.network);

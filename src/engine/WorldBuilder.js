@@ -302,38 +302,51 @@ export class WorldBuilder {
 
     _createStore(branchName, x, y, z, ry) {
         const group = new THREE.Group();
-        const blackMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.2, metalness: 0.6 });
+        const isRatchaphruek = branchName.toLowerCase().includes('ratchaphruek');
+
+        const blackMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3, metalness: 0.4 });
         const whiteMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.5, metalness: 0.1 });
+        const concreteMat = new THREE.MeshStandardMaterial({
+            map: this.concreteTex,
+            roughness: 0.8,
+            metalness: 0.1
+        });
+
         const glassMat = new THREE.MeshStandardMaterial({
             color: 0x88ccff, roughness: 0.05, metalness: 0.9,
-            transparent: true, opacity: 0.35,
+            transparent: true, opacity: 0.25,
         });
         const redMat = new THREE.MeshStandardMaterial({
             color: 0xe2001a, emissive: 0xe2001a, emissiveIntensity: 0.3,
             roughness: 0.3, metalness: 0.5,
         });
 
+        const storeHeight = isRatchaphruek ? 14 : 10;
+        const mainWallMat = isRatchaphruek ? concreteMat : whiteMat;
+
         // Main building
-        const bodyGeo = new THREE.BoxGeometry(16, 10, 12);
-        const body = new THREE.Mesh(bodyGeo, whiteMat);
-        body.position.y = 5;
+        const bodyGeo = new THREE.BoxGeometry(16, storeHeight, 12);
+        const body = new THREE.Mesh(bodyGeo, mainWallMat);
+        body.position.y = storeHeight / 2;
         body.castShadow = true;
         body.receiveShadow = true;
         group.add(body);
 
         // Black facade
-        const facade = new THREE.Mesh(new THREE.BoxGeometry(16.1, 10, 0.3), blackMat);
-        facade.position.set(0, 5, 6.1);
+        const facade = new THREE.Mesh(new THREE.BoxGeometry(16.1, storeHeight, 0.3), blackMat);
+        facade.position.set(0, storeHeight / 2, 6.1);
         group.add(facade);
 
         // Glass storefront
-        const glassPane = new THREE.Mesh(new THREE.PlaneGeometry(14, 7), glassMat);
-        glassPane.position.set(0, 4.5, 6.25);
+        const storefrontWidth = 14;
+        const storefrontHeight = isRatchaphruek ? 10 : 7;
+        const glassPane = new THREE.Mesh(new THREE.PlaneGeometry(storefrontWidth, storefrontHeight), glassMat);
+        glassPane.position.set(0, storefrontHeight / 2 + 0.5, 6.25);
         group.add(glassPane);
 
         // Red accent line on facade
         const accent = new THREE.Mesh(new THREE.BoxGeometry(16.2, 0.15, 0.35), redMat);
-        accent.position.set(0, 8.5, 6.1);
+        accent.position.set(0, storeHeight - 1.5, 6.1);
         group.add(accent);
         const accent2 = accent.clone();
         accent2.position.y = 1;
@@ -341,7 +354,7 @@ export class WorldBuilder {
 
         // Roof overhang
         const roof = new THREE.Mesh(new THREE.BoxGeometry(17, 0.3, 3), blackMat);
-        roof.position.set(0, 10.15, 7);
+        roof.position.set(0, storeHeight + 0.15, 7);
         roof.castShadow = true;
         group.add(roof);
 
@@ -358,33 +371,37 @@ export class WorldBuilder {
         ctx.fillText('DJI 13STORE', 256, 55);
         ctx.font = '28px Inter, system-ui, sans-serif';
         ctx.fillStyle = '#e2001a';
-        ctx.fillText(`สาขา${branchName}`, 256, 95);
+        ctx.fillText(`สาขา${branchName.replace(' Super Store', '')}`, 256, 95);
 
         const signTex = new THREE.CanvasTexture(canvas);
         const signMat = new THREE.MeshStandardMaterial({
             map: signTex, transparent: true, roughness: 0.3,
         });
         const storeSign = new THREE.Mesh(new THREE.PlaneGeometry(8, 2), signMat);
-        storeSign.position.set(0, 9, 6.3);
+        storeSign.position.set(0, storeHeight - 1, 6.3);
         group.add(storeSign);
 
         // Interior floor
-        const floorMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.3, metalness: 0.4 });
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5, metalness: 0.2 });
         const floor = new THREE.Mesh(new THREE.PlaneGeometry(15, 11), floorMat);
         floor.rotation.x = -Math.PI / 2;
         floor.position.y = 0.05;
         floor.receiveShadow = true;
         group.add(floor);
 
+        if (isRatchaphruek) {
+            this._addRatchaphruekRefinements(group, concreteMat, blackMat, glassMat);
+        }
+
         // Interior lighting
-        const interiorLight = new THREE.PointLight(0xffffff, 1.2, 20);
-        interiorLight.position.set(0, 9, 0);
+        const interiorLight = new THREE.PointLight(0xffffff, 1.2, 25);
+        interiorLight.position.set(0, storeHeight - 2, 0);
         group.add(interiorLight);
 
-        // Side walls (only left/right, front is glass)
+        // Side walls
         for (const side of [-1, 1]) {
-            const wall = new THREE.Mesh(new THREE.BoxGeometry(0.3, 10, 12), whiteMat);
-            wall.position.set(side * 8, 5, 0);
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(0.3, storeHeight, 12), mainWallMat);
+            wall.position.set(side * 8, storeHeight / 2, 0);
             group.add(wall);
         }
 
@@ -395,9 +412,93 @@ export class WorldBuilder {
         // Collider
         this.colliders.push(new THREE.Box3(
             new THREE.Vector3(x - 8.5, 0, z - 6.5),
-            new THREE.Vector3(x + 8.5, 11, z + 6.5)
+            new THREE.Vector3(x + 8.5, storeHeight + 1, z + 6.5)
         ));
     }
+
+    _addRatchaphruekRefinements(group, concreteMat, blackMat, glassMat) {
+        // 1. Mezzanine Level
+        const mezzanineGeo = new THREE.BoxGeometry(15, 0.4, 6);
+        const mezzanine = new THREE.Mesh(mezzanineGeo, concreteMat);
+        mezzanine.position.set(0, 6, -2.5);
+        group.add(mezzanine);
+
+        // Mezzanine Railing
+        const railGeo = new THREE.BoxGeometry(15, 1, 0.1);
+        const rail = new THREE.Mesh(railGeo, glassMat);
+        rail.position.set(0, 6.7, 0.5);
+        group.add(rail);
+
+        const railCap = new THREE.Mesh(new THREE.BoxGeometry(15, 0.05, 0.12), blackMat);
+        railCap.position.set(0, 7.2, 0.5);
+        group.add(railCap);
+
+        // 2. Industrial Staircase
+        const stairGroup = new THREE.Group();
+        const steps = 15;
+        const stepWidth = 2;
+        const stepHeight = 6 / steps;
+        for (let i = 0; i < steps; i++) {
+            const step = new THREE.Mesh(new THREE.BoxGeometry(stepWidth, 0.1, 0.4), blackMat);
+            step.position.set(0, i * stepHeight, i * 0.35);
+            stairGroup.add(step);
+        }
+        // Stair side rails
+        const stringer = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 6), blackMat);
+        stringer.position.set(stepWidth / 2, 3, 2.5);
+        stringer.rotation.x = Math.atan2(6, 6 * 0.35); // Approx angle
+        stairGroup.add(stringer);
+
+        stairGroup.position.set(6, 0.1, -1);
+        group.add(stairGroup);
+
+        // 3. Glass Partitions (Service Center)
+        const partition = new THREE.Mesh(new THREE.BoxGeometry(6, 6, 0.1), glassMat);
+        partition.position.set(-4, 3, -1);
+        group.add(partition);
+
+        const partitionSide = new THREE.Mesh(new THREE.BoxGeometry(0.1, 6, 4), glassMat);
+        partitionSide.position.set(-1, 3, -3);
+        group.add(partitionSide);
+
+        // 4. Track Lighting (Emissive)
+        const trackGeo = new THREE.CylinderGeometry(0.05, 0.05, 14, 8);
+        const trackMat = blackMat;
+        const track = new THREE.Mesh(trackGeo, trackMat);
+        track.rotation.z = Math.PI / 2;
+        track.position.set(0, 11, 2);
+        group.add(track);
+
+        const lightBulbGeo = new THREE.SphereGeometry(0.15, 8, 8);
+        const lightBulbMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1 });
+        for (let i = -5; i <= 5; i += 2.5) {
+            const bulb = new THREE.Mesh(lightBulbGeo, lightBulbMat);
+            bulb.position.set(i, 11, 2);
+            group.add(bulb);
+        }
+
+        // 5. Flight Demo Zone Floor Markings
+        const borderGeo = new THREE.PlaneGeometry(10, 10);
+        const borderCanvas = document.createElement('canvas');
+        borderCanvas.width = 512;
+        borderCanvas.height = 512;
+        const bCtx = borderCanvas.getContext('2d');
+        bCtx.strokeStyle = '#e2001a';
+        bCtx.lineWidth = 20;
+        bCtx.strokeRect(0, 0, 512, 512);
+        bCtx.font = 'bold 40px Inter, sans-serif';
+        bCtx.fillStyle = '#e2001a';
+        bCtx.textAlign = 'center';
+        bCtx.fillText('DRONE DEMO ZONE', 256, 50);
+
+        const borderTex = new THREE.CanvasTexture(borderCanvas);
+        const borderMat = new THREE.MeshStandardMaterial({ map: borderTex, transparent: true, opacity: 0.6 });
+        const border = new THREE.Mesh(borderGeo, borderMat);
+        border.rotation.x = -Math.PI / 2;
+        border.position.set(0, 0.06, 0);
+        group.add(border);
+    }
+
 
     /* =================== DRONE OUTDOOR DISPLAY =================== */
     _createDroneDisplayZone() {
@@ -693,6 +794,15 @@ export class WorldBuilder {
             ));
         }
         return positions;
+    }
+
+    getHandheldDisplayPositions() {
+        // Positions inside Ratchaphruek Super Store (x=30, z=-25)
+        // Entrance handheld tables
+        return [
+            new THREE.Vector3(27, 0.4, -22),
+            new THREE.Vector3(33, 0.4, -22)
+        ];
     }
 
     /* =================== MEETING HALL =================== */
